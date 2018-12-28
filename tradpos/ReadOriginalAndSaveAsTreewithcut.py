@@ -95,8 +95,8 @@ def ReadSingleRawText(filename,relatedpixels,relatednorm,Nbofwavepoint):
                         ledtrigger=sum(list(map(int,line[1:])))
                     elif int(line[0])==beamch:
                         beamtrigger=sum(list(map(int,line[1:])))
-            # if eventid>30000:
-                # break
+            if eventid>30000:
+                break
         if beamtrigger>4000 and ledtrigger>-500 and ledtrigger<500:
             wavelist.append(list(pixelwave.reshape(9*Nbofwavepoint)))
             intlist.append(list(pixelint))

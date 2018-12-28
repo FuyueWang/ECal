@@ -3,7 +3,7 @@ void createsinshapedata(){
   TString thisdir="tradpos/";
   TString rootdatadir="../../data/"+thisdir,txtdir="../../txt/"+thisdir,plotdir="../../plot"+thisdir;
 
-  Int_t Nbofscan=1;
+  Int_t Nbofscan=6;
   Int_t filerange[2]={0,32};
   Int_t Nboffile=filerange[1]-filerange[0]+1;
 
@@ -14,6 +14,7 @@ void createsinshapedata(){
 	 calibratedpos[filei]=16-(filei+filerange[0])*0.5;
   }
   for(Int_t scani=0;scani<Nbofscan;scani++){
+	 // if(scani==0) continue;
 	 for(Int_t filei=0;filei<Nboffile;filei++)
 		measuredposhist[filei]->Reset();
 	 
@@ -30,7 +31,6 @@ void createsinshapedata(){
 		// if(intch[3]+intch[4]+intch[5]<1/2000) continue;
 		if(fileid<filerange[0]||fileid>filerange[1]) continue;
 		if(fileid<15){
-
 		  measuredposhist[fileid-filerange[0]]->Fill(((intch[0]+intch[1]+intch[2])*14+(intch[3]+intch[4]+intch[5])*10+(intch[6]+intch[7]+intch[8])*6)/(intch[0]+intch[1]+intch[2]+intch[3]+intch[4]+intch[5]+intch[6]+intch[7]+intch[8]));
 		}
 		else{

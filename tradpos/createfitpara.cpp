@@ -9,6 +9,9 @@ void createfitpara(){
   Double_t meanmeasuredpos[Nboffile],posresidual[Nboffile],fitparasummary[Nbofscan][4];
 
   for(Int_t scani=0;scani<Nbofscan;scani++){
+	 Double_t startfitrange=3;
+	 if(scani==2) startfitrange=4;
+	 else startfitrange=3;
 	 ifstream infile(txtdir+"residualposVsmeasurescan"+TString::Format("%d",scani+1)+".txt", ios::in);
 	 TString tmpstr;
 	 Double_t tmpdouble;
@@ -18,7 +21,7 @@ void createfitpara(){
 		infile>>tmpdouble; posresidual[filei]=tmpdouble;
 	 }
 	 infile.close();
-	 TF1 *fsin = new TF1("fsin"+TString::Format("%d",scani),"[0]*pow(x,0.1)*sin([1]*x+[2])+[3]",3,13.2);
+	 TF1 *fsin = new TF1("fsin"+TString::Format("%d",scani),"[0]*pow(x,0.1)*sin([1]*x+[2])+[3]",startfitrange,13.2);
 	 TGraph* gr=new TGraph(Nboffile,meanmeasuredpos,posresidual);
 	 gr->Draw("AP");
 	 gr->SetMarkerStyle(21);
