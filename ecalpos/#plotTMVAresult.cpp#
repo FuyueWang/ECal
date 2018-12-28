@@ -1,0 +1,19 @@
+#include </home/ubuntu/FuyueWANG/mrpc/MRPCProject/plotfunctions.cpp>
+void plotTMVAresult(){
+  
+  TString thisdir="ecalpos/";
+  TString tmvadata="../../data/"+thisdir+"TMVA/",plotdir="../../plot/"+thisdir,txtdir="../../txt/"+thisdir;
+  Int_t Nbofscan=6;
+  TH1D* residualhist[Nbofscan];
+  for(Int_t scani=0;scani<Nbofscan;scani++){
+	 TFile * infile = new TFile("NNtrain"+TString::Format("%d",scani)+"TMVAReg.root");
+	 TDirectory* dir = gFile->GetDirectory("dataset");
+	 TTree* intree;
+	 dir->GetObject("TestTree", intree);
+	 intree->Draw("MLP-fileid");
+
+	 
+
+
+	 
+}
