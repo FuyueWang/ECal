@@ -41,6 +41,8 @@ void createfitpara(){
 	 p1.yname[0]="Measured-Calibrated Position [cm]";
 	 p1.textcontent="ECal: Interpolation correction scan:"+TString::Format("%d",scani+1);
 	 p1.plotname=plotdir+"fitsin"+TString::Format("%d",scani+1);
+	 p1.minortext=TString::Format("%.2f",fitpara[0])+"x^{0.1}sin("+TString::Format("%.2f",fitpara[1])+"x"+TString::Format("%.2f",fitpara[2])+")"+TString::Format("%.2f",fitpara[3]);
+	 p1.SetMinorTextPosition(0.4,0.88);
 	 Draw1GraphAndTF(meanmeasuredpos,posresidual,Nboffile,fsin,p1);
   }
   ofstream outstd(txtdir+"fitpara.txt");

@@ -10,7 +10,7 @@ import os.path
 dfdir='../../data/ecalpos/dfdata/'
 
 outdatadir='../../data/nn/tensorflow/'
-NbofscanID=3 #5
+NbofscanID=5
 scanID=[57,58,59,60,61,62,63,64]
 startfileID=[164427,172244,175925,183015,191430,195325,202522,210502]
 endfileID=[171339,174724,182152,185151,194436,201705,204706,212657]
@@ -37,7 +37,7 @@ def WriteTreeForEachScan():
     wavearray=np.ones(244).reshape(1,244)
     intarray=np.ones(10).reshape(1,10)
     
-    for scanid in range(1,NbofscanID-1):
+    for scanid in range(2,NbofscanID-1):
         for fiid in range(0,33):
             if fiid in filerange:
                 if fiid <15:
@@ -54,7 +54,7 @@ def WriteTreeForEachScan():
                 # print(np.array(wave).shape,((np.ones(len(integral)).reshape(len(integral),1))*pos).shape)
                 # print(np.concatenate((np.array(wave),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=0))
                 wavearray=np.concatenate((wavearray,np.concatenate((np.array(wave),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
-                integral=np.concatenate((intarray,np.concatenate((np.array(integral),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
+                intarray=np.concatenate((intarray,np.concatenate((np.array(integral),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
 
         # print(wavearray[1,18:27])
         cnnwave1=wavearray[1:,:9]
@@ -66,13 +66,14 @@ def WriteTreeForEachScan():
             cnnwave3=np.concatenate((cnnwave3,wavearray[1:,27*k+18:27*k+27]),axis=1)
         cnnwave=np.concatenate((cnnwave1,cnnwave2,cnnwave3,wavearray[1:,-1].reshape(cnnwave1.shape[0],1)),axis=1)
         # print(cnnwave[0,160:171])
-        integral=integral[1:,:]
+        intarray=intarray[1:,:]
         wavearray=wavearray[1:,:]
-        np.random.shuffle(integral)
+        np.random.shuffle(intarray)
         np.random.shuffle(wavearray)
         np.random.shuffle(cnnwave)
+ 
         with open(outdatadir+'integralscan'+str(scanid)+'.dat', 'wb') as f:
-            pickle.dump(integral, f)
+            pickle.dump(intarray, f)
         with open(outdatadir+'wavescan'+str(scanid)+'.dat', 'wb') as f:
             pickle.dump(wavearray, f)
         with open(outdatadir+'cnnwavescan'+str(scanid)+'.dat', 'wb') as f:
@@ -114,7 +115,7 @@ def ReadSingleRawText(filename,relatedpixels,relatednorm,Nbofwavepoint):
                         beamtrigger=sum(list(map(int,line[1:])))
             if eventid>45000:
                 break
-        if beamtrigger>4000 and ledtrigger>-500 and ledtrigger<500:
+        if beamtrigger>4000 and ledtrigger>-450 and ledtrigger<450:
             wavelist.append(list(pixelwave.reshape(9*Nbofwavepoint)))
             intlist.append(list(pixelint))
     return wavelist,intlist

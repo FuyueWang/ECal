@@ -30,7 +30,43 @@ for k in reversed(range(9,17)):
     longimap.append(k)    
 longimap=np.array(longimap).reshape(4,8)
 
+def WriteTreeForEachScanLess():
+    Nbofevents=3000
+    filenamedf=pd.read_csv(dfdir+'filename.csv')
+    normvalue=np.loadtxt(dfdir+'normvalueinde.txt')
+    filerange=[k for k in range(8,23)]
+    Nbofwavepoint=27
+    wavech = array('f',243*[0.])
+    intch = array('f',9*[0.])
+    fileid = array('i',[0])
+
+    for scanid in range(1,NbofscanID-1):
+        f = TFile(outdatadir+"lwaveform"+str(scanid)+"cutLEDless.root", 'recreate' )
+        tree = TTree( 'wavetree', 'wavetree' )
+        # tree.Branch('wavech',wavech,'wavech[243]/F')
+        tree.Branch('intch',intch,'intch[9]/F')
+        tree.Branch('fileid',fileid,'fileid/I')
+        for fiid in filerange:
+            if fiid <15:
+                relatedpixels=longimap[:3,scanid-1:scanid+2].reshape(9)
+                relatednorm=normvalue[:3,scanid-1:scanid+2].reshape(9)
+            else:
+                relatedpixels=longimap[1:,scanid-1:scanid+2].reshape(9)
+                relatednorm=normvalue[1:,scanid-1:scanid+2].reshape(9)
+            print(scanid,fiid)
+            fileid[0]=fiid
+            wavelist,intlist=ReadSingleRawText(filenamedf['scanstart'+str(scanID[scanid])].iloc[fiid],relatedpixels,relatednorm,Nbofwavepoint,Nbofevents)
+            for itr in range(len(intlist)):
+                for k in range(9):
+                    intch[k]=intlist[itr][k]
+                # for k in range(243):
+                #     wavech[k]=wavelist[itr][k]
+                tree.Fill()
+        f.Write()
+        f.Close()
+
 def WriteTreeForEachScan():
+    Nbofevents=30000
     filenamedf=pd.read_csv(dfdir+'filename.csv')
     normvalue=np.loadtxt(dfdir+'normvalueinde.txt')
     filerange=[k for k in range(8,23)]
@@ -54,7 +90,7 @@ def WriteTreeForEachScan():
                 relatednorm=normvalue[1:,scanid-1:scanid+2].reshape(9)
             print(scanid,fiid)
             fileid[0]=fiid
-            wavelist,intlist=ReadSingleRawText(filenamedf['scanstart'+str(scanID[scanid])].iloc[fiid],relatedpixels,relatednorm,Nbofwavepoint)
+            wavelist,intlist=ReadSingleRawText(filenamedf['scanstart'+str(scanID[scanid])].iloc[fiid],relatedpixels,relatednorm,Nbofwavepoint,Nbofevents)
             for itr in range(len(intlist)):
                 for k in range(9):
                     intch[k]=intlist[itr][k]
@@ -64,11 +100,43 @@ def WriteTreeForEachScan():
         f.Write()
         f.Close()
 
-def ReadSingleRawText(filename,relatedpixels,relatednorm,Nbofwavepoint):
+
+def WriteTreeForEachScan3by4():
+    Nbofevents=10000
+    filenamedf=pd.read_csv(dfdir+'filename.csv')
+    normvalue=np.loadtxt(dfdir+'normvalueinde.txt')
+    filerange=[k for k in range(0,33)]
+    Nbofwavepoint=27
+    intch = array('f',12*[0.])
+    fileid = array('i',[0])
+
+    for scanid in range(1,NbofscanID-1):
+        f = TFile(outdatadir+"lwaveform"+str(scanid)+"cutLED3by4.root", 'recreate' )
+        tree = TTree( 'wavetree', 'wavetree' )
+        # tree.Branch('wavech',wavech,'wavech[243]/F')
+        tree.Branch('intch',intch,'intch[12]/F')
+        tree.Branch('fileid',fileid,'fileid/I')
+        relatedpixels=longimap[:,scanid-1:scanid+2].reshape(12)
+        relatednorm=normvalue[:,scanid-1:scanid+2].reshape(12)
+        for fiid in filerange:
+            print(scanid,fiid)
+            fileid[0]=fiid
+            wavelist,intlist=ReadSingleRawText(filenamedf['scanstart'+str(scanID[scanid])].iloc[fiid],relatedpixels,relatednorm,Nbofwavepoint,Nbofevents)
+            for itr in range(len(intlist)):
+                for k in range(12):
+                    intch[k]=intlist[itr][k]
+                # for k in range(243):
+                #     wavech[k]=wavelist[itr][k]
+                tree.Fill()
+        f.Write()
+        f.Close()
+
+def ReadSingleRawText(filename,relatedpixels,relatednorm,Nbofwavepoint,Nbofevents):
     firstEvent=True
     wavelist=[]
     intlist=[]
     eventid=-1
+    featuredim=relatednorm.shape[0]
     with open(filename,'r') as f:
         for line in f:
             if len(line.split()) > 0:
@@ -79,10 +147,10 @@ def ReadSingleRawText(filename,relatedpixels,relatednorm,Nbofwavepoint):
                         firstEvent=False
                     else:
                         if beamtrigger>4000 and ledtrigger>-500 and ledtrigger<500:
-                            wavelist.append(list(pixelwave.reshape(9*Nbofwavepoint)))
+                            wavelist.append(list(pixelwave.reshape(featuredim*Nbofwavepoint)))
                             intlist.append(list(pixelint))
-                    pixelwave=np.zeros(9*Nbofwavepoint).reshape(9,Nbofwavepoint)
-                    pixelint=np.zeros(9)
+                    pixelwave=np.zeros(featuredim*Nbofwavepoint).reshape(featuredim,Nbofwavepoint)
+                    pixelint=np.zeros(featuredim)
                     ledtrigger=0
                     beamtrigger=0
                 else:
@@ -95,10 +163,10 @@ def ReadSingleRawText(filename,relatedpixels,relatednorm,Nbofwavepoint):
                         ledtrigger=sum(list(map(int,line[1:])))
                     elif int(line[0])==beamch:
                         beamtrigger=sum(list(map(int,line[1:])))
-            if eventid>30000:
+            if eventid>Nbofevents:
                 break
         if beamtrigger>4000 and ledtrigger>-500 and ledtrigger<500:
-            wavelist.append(list(pixelwave.reshape(9*Nbofwavepoint)))
+            wavelist.append(list(pixelwave.reshape(featuredim*Nbofwavepoint)))
             intlist.append(list(pixelint))
     return wavelist,intlist
 
@@ -139,10 +207,9 @@ def ReadSingleRawTxTforNormIndependent(filename,relatedpixels):
 
 
 
-
-WriteTreeForEachScan()
-
-
+# WriteTreeForEachScanLess()
+# WriteTreeForEachScan()
+WriteTreeForEachScan3by4()
 
 
 
