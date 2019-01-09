@@ -6,12 +6,12 @@ import warnings
 import pandas as pd
 import matplotlib.pyplot as plt 
 warnings.filterwarnings("ignore")
-outdatadir='../../data/nn/tensorflow/'
-createmap=False
+outdatadir='../../data/nnx/tensorflow/'
+createmap=True
 
-trainsize=400000
+trainsize=500000
 batchsize=20000 #5000
-testsize=22900 #99000
+testsize=100000 #99000
 
 stepNbofiter=100000
 Nboflearn=6
@@ -38,8 +38,8 @@ outputs = tf.contrib.layers.fully_connected(outputs,16 ,activation_fn=tf.nn.tanh
 outputs = tf.contrib.layers.fully_connected(outputs,19 ,activation_fn=tf.nn.tanh)
 outputs = tf.contrib.layers.dropout(outputs, keep_prob=0.85)
 
-# outputs = tf.contrib.layers.fully_connected(outputs,12,activation_fn=tf.nn.relu )
-# # outputs = tf.contrib.layers.dropout(outputs, keep_prob=0.85)
+outputs = tf.contrib.layers.fully_connected(outputs,12,activation_fn=tf.nn.relu )
+outputs = tf.contrib.layers.dropout(outputs, keep_prob=0.85)
 # outputs = tf.contrib.layers.fully_connected(outputs,7,activation_fn=tf.nn.relu )
 # # outputs = tf.contrib.layers.dropout(outputs, keep_prob=0.85)
 outputs = tf.contrib.layers.fully_connected(outputs,8,activation_fn=tf.nn.tanh )
@@ -57,10 +57,10 @@ posstd=tf.sqrt(var)
 saver = tf.train.Saver(max_to_keep=4000)
 #initialize variables
 init=tf.global_variables_initializer()
-scani=3
+scani=0
 ModelDir=outdatadir+"DNNmodels"+str(scani)+'/'
 
-with open(outdatadir+'integralscan'+str(scani)+'.dat', 'rb') as f:
+with open(outdatadir+'integralscan'+str(scani)+'2.dat', 'rb') as f:
     datafromfile = pickle.load(f)
 
 Nbofbatch=trainsize//batchsize
@@ -109,13 +109,13 @@ for learni in range(0,Nboflearn):
                 testreso.append(teststd[0])
 
                 ax = plt.subplot2grid((2,2), (0,0))
-                ax.hist(trainpred-inputy,bins=np.linspace(-4, 4,70),label='train',color='k',histtype='step')
-                ax.hist(testpred-testinputy,bins=np.linspace(-4, 4,70),label='test',color='r',histtype='step')
+                ax.hist(trainpred-inputy,bins=np.linspace(-2,2,70),label='train',color='k',histtype='step')
+                ax.hist(testpred-testinputy,bins=np.linspace(-2,2,70),label='test',color='r',histtype='step')
                 plt.title('residual')
                 plt.legend(loc='upper right')
                 ax = plt.subplot2grid((2,2), (0,1))
-                ax.hist(inputy,bins=np.linspace(7, 14,70),label='truth',color='k',histtype='step')
-                ax.hist(trainpred,bins=np.linspace(7, 14,70),label='pred',color='r',histtype='step')
+                ax.hist(inputy,bins=np.linspace(9.7, 14,70),label='truth',color='k',histtype='step')
+                ax.hist(trainpred,bins=np.linspace(9.7, 14,70),label='pred',color='r',histtype='step')
                 plt.title('position')
                 plt.legend(loc='upper right')
                 ax = plt.subplot2grid((2,2), (1,0))
@@ -132,8 +132,8 @@ for learni in range(0,Nboflearn):
                 plt.pause(0.001)
                 
                 print("learning rate",sess.run(learning_rate,feed_dict={x:inputx, y: inputy, learningi: thislearning}))
-                print("For iter",iter,"train: pos resolution", std[0],"cm, Loss",los ,"residual",posresidual,"cm")
-                print("For iter",iter,"test: pos resolution", teststd[0],"cm, Loss",testlos ,"residual",testposresidual,"cm")
+                print("For iter",iter,"train: pos reso", std[0],"cm, Loss",los ,"residual",posresidual[0],"cm")
+                print("For iter",iter,"test: pos reso", teststd[0],"cm, Loss",testlos ,"residual",testposresidual[0],"cm")
             if iter % ModelSaverCount ==0:
                 if createmap:
                     saver.save(sess, ModelDir+"test",global_step=iter,write_meta_graph=True)

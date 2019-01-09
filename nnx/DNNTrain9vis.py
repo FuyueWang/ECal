@@ -4,8 +4,11 @@ import numpy as np
 import pickle
 import warnings
 import pandas as pd
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+import matplotlib
 warnings.filterwarnings("ignore")
+textsize=15
+matplotlib.rcParams.update({'font.size': textsize})
 outdatadir='../../data/nn/tensorflow/'
 createmap=False
 
@@ -14,7 +17,7 @@ batchsize=20000 #5000
 testsize=22900 #99000
 
 stepNbofiter=100000
-Nboflearn=6
+Nboflearn=1
 
 learningi=tf.placeholder("float",[1])
 learning_rate=0.01*pow(0.1,learningi[0])
@@ -58,32 +61,32 @@ saver = tf.train.Saver(max_to_keep=4000)
 #initialize variables
 init=tf.global_variables_initializer()
 scani=3
-ModelDir=outdatadir+"DNNmodels"+str(scani)+'/'
+ModelDir=outdatadir+"DNNmodelsvis"+str(scani)+'/'
 
 with open(outdatadir+'integralscan'+str(scani)+'.dat', 'rb') as f:
     datafromfile = pickle.load(f)
 
 Nbofbatch=trainsize//batchsize
-fig = plt.figure(figsize=(9,7))
+fig = plt.figure(figsize=(8,7))
 
 if createmap:
     Nboflearn=1;
 for learni in range(0,Nboflearn):
     thislearning=[learni]
     if createmap:
-        Nbofiter=210
-        PrintCount=100
-        ModelSaverCount=100
+        Nbofiter=2
+        PrintCount=1
+        ModelSaverCount=1
     else:
-        Nbofiter=stepNbofiter*(1+learni*2)+10
-        PrintCount=1000
+        Nbofiter=20001 #stepNbofiter*(1+learni*2)+10
+        PrintCount=500
         ModelSaverCount=Nbofiter-10
 
     with tf.Session() as sess:
         sess.run(init)
         iter=0
         if createmap == False:
-            new_saver = tf.train.import_meta_graph(ModelDir+'test-100.meta')
+            new_saver = tf.train.import_meta_graph(ModelDir+'test-1.meta')
             new_saver.restore(sess, tf.train.latest_checkpoint(ModelDir))
 
         trainloss=[]
@@ -111,29 +114,40 @@ for learni in range(0,Nboflearn):
                 ax = plt.subplot2grid((2,2), (0,0))
                 ax.hist(trainpred-inputy,bins=np.linspace(-4, 4,70),label='train',color='k',histtype='step')
                 ax.hist(testpred-testinputy,bins=np.linspace(-4, 4,70),label='test',color='r',histtype='step')
-                plt.title('residual')
+                # plt.title('residual',fontsize=textsize)
+                plt.xlabel('Measured-Truth Position [cm]')
+                plt.ylabel('Count')
                 plt.legend(loc='upper right')
                 ax = plt.subplot2grid((2,2), (0,1))
                 ax.hist(inputy,bins=np.linspace(7, 14,70),label='truth',color='k',histtype='step')
                 ax.hist(trainpred,bins=np.linspace(7, 14,70),label='pred',color='r',histtype='step')
-                plt.title('position')
+                # plt.title('position')
+                plt.xlabel('Truth & Measured Position [cm]')
+                plt.ylabel('Count')
                 plt.legend(loc='upper right')
                 ax = plt.subplot2grid((2,2), (1,0))
                 ax.plot(trainloss,label='train',color='k')
                 ax.plot(testloss,label='test',color='r')
-                plt.title('loss')
+                # plt.title('loss')
+                plt.xlabel('Iteraction/500')
+                plt.ylabel('Loss')
                 plt.legend(loc='upper right')
                 ax = plt.subplot2grid((2,2), (1,1))
                 ax.plot(trainreso,label='train',color='k')
                 ax.plot(testreso,label='test',color='r')
-                plt.title('loss')
+                # plt.title('position resolution')
+                plt.xlabel('Iteraction/500')                
+                plt.ylabel('Position Resolution [cm]')
                 plt.legend(loc='upper right')
+                plt.subplots_adjust(left=0.115,bottom=0.08,right=0.975,top=0.95,wspace=0.31,hspace=0.3)
+                plt.savefig(ModelDir+'plot.pdf') #,dpi=200)q
                 plt.draw()
                 plt.pause(0.001)
                 
                 print("learning rate",sess.run(learning_rate,feed_dict={x:inputx, y: inputy, learningi: thislearning}))
                 print("For iter",iter,"train: pos resolution", std[0],"cm, Loss",los ,"residual",posresidual,"cm")
                 print("For iter",iter,"test: pos resolution", teststd[0],"cm, Loss",testlos ,"residual",testposresidual,"cm")
+
             if iter % ModelSaverCount ==0:
                 if createmap:
                     saver.save(sess, ModelDir+"test",global_step=iter,write_meta_graph=True)

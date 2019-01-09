@@ -3,10 +3,10 @@ void summarycorrection(){
   TString thisdir="tradpos/";
   TString rootdatadir="../../data/"+thisdir,txtdir="../../txt/"+thisdir,plotdir="../../plot/"+thisdir;
 
-  Double_t posscan1[5]={6.351,5.416,5.772,5.922,5.143};
-  Double_t posscan2[5]={6.295,5.372,5.751,5.923,5.081};
-  Double_t posscan3[5]={6.442,5.343,5.817,5.918,5.351};
-  Double_t methodid[5]={0,1,2,3,4};
+  Double_t posscan1[6]={6.351,5.416,5.772,5.922,5.143,4.818};
+  Double_t posscan2[6]={6.295,5.372,5.751,5.923,5.081,4.832};
+  Double_t posscan3[6]={6.442,5.343,5.817,5.918,5.351,4.855};
+  Double_t methodid[6]={0,1,2,3,4,5};
   vector<Double_t*> plotx,ploty;
   vector<Int_t> vecNbofpoints;
   plotx.push_back(methodid);
@@ -15,9 +15,9 @@ void summarycorrection(){
   ploty.push_back(posscan1);
   ploty.push_back(posscan2);
   ploty.push_back(posscan3);
-  vecNbofpoints.push_back(5);
-  vecNbofpoints.push_back(5);
-  vecNbofpoints.push_back(5);
+  vecNbofpoints.push_back(6);
+  vecNbofpoints.push_back(6);
+  vecNbofpoints.push_back(6);
   
   plotpara p1;
   p1.yname[0]="Position Resolution [mm]";

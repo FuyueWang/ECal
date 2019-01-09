@@ -1,13 +1,13 @@
 #include </home/ubuntu/fuyuew/mrpc/MRPCProject/plotfunctions.cpp>
 void correction(){
-  TString thisdir="tradpos/";
+  TString thisdir="dubna/";
   TString rootdatadir="../../data/"+thisdir,txtdir="../../txt/"+thisdir,plotdir="../../plot/"+thisdir;
 
   Int_t scani=0;
-  Int_t filerange[2]={8,22};
+  Int_t filerange[2]={0,10};
   Int_t Nboffile=filerange[1]-filerange[0]+1,Nsigma=3;
 
-  for(Int_t methodid=4;methodid<5;methodid++){
+  for(Int_t methodid=3;methodid<5;methodid++){
   // Int_t methodid=3;
   
   Double_t fitpara[6][4];
@@ -29,10 +29,10 @@ void correction(){
 
   Double_t singlecorr[33];
   if(methodid==4){
-	 infile.open(txtdir+"residualposVsmeasurescan"+TString::Format("%d",scani+1)+".txt");
+	 infile.open(txtdir+"residualposVsmeasurescan"+TString::Format("%d",scani)+".txt");
 	 infile>>tmpstr>>tmpstr;
 	 cout<<tmpstr<<endl;
-	 for(Int_t filei=0;filei<Nboffile;filei++){
+	 for(Int_t filei=0;filei<33;filei++){
 		infile>>tmpdouble; singlecorr[filei]=fsin->Eval(tmpdouble);
 		cout<<tmpdouble<<endl;
 		infile>>tmpdouble;
@@ -56,7 +56,7 @@ void correction(){
 	 uncorrectedFullresidualhist[filei]=new TH1D("uncorrectedFullresidualhist"+TString::Format("%d",filei),"",100,-100,100);
 	 truthpos[filei]=16-filei*0.5+fitpara[scani][3];
   }
-  TFile* inrootfile=new TFile(rootdatadir+"rootdata/lwaveform"+TString::Format("%d",scani+1)+"cutLED.root");
+  TFile* inrootfile=new TFile(rootdatadir+"rootdata/lwaveform"+TString::Format("%d",scani)+"energy.root");
   TTree* intree=(TTree*)inrootfile->Get("wavetree");
   Int_t fileid;
   Float_t intch[9];
@@ -130,7 +130,7 @@ void correction(){
   p1.legendname.push_back("After Correction");
   p1.SetY1range(-3,3);
   p1.textcontent="ECal: interpolation correction method "+TString::Format("%d",methodid);
-  p1.plotname=plotdir+"scan"+TString::Format("%d",scani+1)+"m"+TString::Format("%d",methodid)+"corrcompare";
+  p1.plotname=plotdir+"scan"+TString::Format("%d",scani)+"m"+TString::Format("%d",methodid)+"corrcompare";
   DrawNGraph(veccompareplotx,veccompareploty,2,vecNbofpoints,p1);
   
   // residual histogram
@@ -142,7 +142,7 @@ void correction(){
   p2.titleoffsety[0]=2;
   p2.textcontent="ECal: position residual before correction";
   p2.SetStatsrange(0.62,0.56,0.97,0.94);
-  p2.plotname=plotdir+"scan"+TString::Format("%d",scani+1)+"m"+TString::Format("%d",methodid)+"resihistbefore";
+  p2.plotname=plotdir+"scan"+TString::Format("%d",scani)+"m"+TString::Format("%d",methodid)+"resihistbefore";
   TF1 *f1 = new TF1("f1","gaus");
   Double_t mean = uncorrectedAllresidualhist->GetMean();
   Double_t sigma = uncorrectedAllresidualhist->GetRMS();
@@ -157,7 +157,7 @@ void correction(){
   Draw1HistogramWithTF1(uncorrectedAllresidualhist,f1,p2);
 
   p2.textcontent="ECal: position residual after correction";
-  p2.plotname=plotdir+"scan"+TString::Format("%d",scani+1)+"m"+TString::Format("%d",methodid)+"resihistafter";
+  p2.plotname=plotdir+"scan"+TString::Format("%d",scani)+"m"+TString::Format("%d",methodid)+"resihistafter";
   TF1 *f2 = new TF1("f2","gaus");
   mean = correctedAllresidualhist->GetMean();
   sigma = correctedAllresidualhist->GetRMS();

@@ -5,7 +5,7 @@ void drawnntest(){
   TString rootdatadir="../../data/"+thisdir,txtdir="../../txt/"+thisdir,plotdir="../../plot/"+thisdir;
 
   
-  Int_t Nsigma=3,scani=1;
+  Int_t Nsigma=3,scani=1;//{1,2,3}
   TString model="DNNmodels"+TString::Format("%d",scani);
  
   TH1D *residual=new TH1D("residual","",60,-3.5,4.5);
@@ -31,7 +31,7 @@ void drawnntest(){
   p2.titleoffsety[0]=2;
   p2.textcontent="ECal: position residual of "+model;
   p2.SetStatsrange(0.62,0.56,0.97,0.94);
-  p2.plotname=plotdir+model+"scan"+TString::Format("%d",scani)+"resihist";
+  p2.plotname=plotdir+model+"resihist";
   TF1 *f1 = new TF1("f1","gaus");
   Double_t mean = residual->GetMean();
   Double_t sigma = residual->GetRMS();
