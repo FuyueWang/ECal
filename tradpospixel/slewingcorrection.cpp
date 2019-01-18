@@ -1,90 +1,27 @@
 #include </home/ubuntu/fuyuew/mrpc/MRPCProject/plotfunctions.cpp>
-void slewing();
-void drawresofordubna();
-
 void slewingcorrection(){
-  slewing();
-    drawresofordubna();
-  
-}
-
-void drawresofordubna(){
-  TString thisdir="dubna/";
+  TString thisdir="tradpos/";
   TString rootdatadir="../../data/"+thisdir,txtdir="../../txt/"+thisdir,plotdir="../../plot/"+thisdir+"slewing/";
-  Int_t Nbofscan=6;
-  Double_t posreso[Nbofscan],preposreso[Nbofscan],energy[6]={1,1.2,1.4,1.6,1.8,2.0},resoerror[Nbofscan],resoxerror[6]={0,0,0,0,0,0};
-
-  ifstream infile(txtdir+"resoforscansslewing.txt", ios::in);
-  TString tmpstr;
-  Double_t tmpdouble;
-  infile>>tmpstr>>tmpstr>>tmpstr>>tmpstr>>tmpstr;
-  for(Int_t scanid=0;scanid<6;scanid++){
-	 infile>>tmpdouble; 
-	 infile>>tmpdouble; energy[scanid]=tmpdouble;
-	 infile>>tmpdouble; posreso[scanid]=tmpdouble;
-	 infile>>tmpdouble; resoerror[scanid]=tmpdouble;
-	 infile>>tmpdouble; preposreso[scanid]=tmpdouble;
-  }
-  infile.close();
-
-  plotpara p2;
-  p2.yname[0]="Position Resolution [cm]";
-  p2.xname="Energy [GeV]";
-  p2.textcontent="ECal: Dubna modual";
-  p2.titleoffsety[0]=1.5;
-  p2.leftmargin=0.15;
-  p2.rightmargin=0.2-p2.leftmargin;
-  p2.SetFitrange1(0.85,2.15);
-  p2.SetXrange(0.65,2.3);
-  p2.SetY1range(0.31,1.26);
-  p2.plotname=plotdir+"posresolution";
-  // // Draw1FitGraph(energy,posreso,resoxerror,resoerror,Nbofscan,p2);
-  // Draw1FitGraph(energy,posreso,Nbofscan,p2);
-  
-  // p2.SetY1range(0.41,2.7);
-  // p2.plotname=plotdir+"preposresolution";
-  // Draw1FitGraph(energy,preposreso,Nbofscan,p2);
-  
-  p2.SetLegendPosition(0.55,0.8,0.8,0.9);
-  p2.colorof2ndaxis=1;
-  p2.colorof2ndaxistext=0;
-  p2.titleoffsety[1]=10;
-  p2.SetFitrange2(0.85,2.15);
-  p2.SetY2range(0.31,1.26);
-  p2.legendname.push_back("Before correction");
-  p2.legendname.push_back("After correction");
-  p2.plotname=plotdir+"allposresolution";
-  DrawFitGraphWith2Axis(energy,preposreso,energy,posreso,Nbofscan,Nbofscan,p2);
-
-}
-
-void slewing(){
-  TString thisdir="dubna/";
-  TString rootdatadir="../../data/"+thisdir,txtdir="../../txt/"+thisdir,plotdir="../../plot/"+thisdir+"slewing/";
-  bool savetxt=true;
-  Int_t Nbofscan=6;
-  Double_t residualmean[Nbofscan],posreso[Nbofscan],preposreso[Nbofscan],posresoerror[Nbofscan],rangefit[2]={3,14},ypos[4]={14,10,6,2},energy[6]={1,1.2,1.4,1.6,1.8,2.0};
-  ifstream infile(txtdir+"residualmeanforscans.txt", ios::in);
-  TString tmpstr;
-  Double_t tmpdouble;
-  infile>>tmpstr>>tmpstr;
-  for(Int_t scanid=0;scanid<6;scanid++){
-		infile>>tmpdouble; 
-		infile>>tmpdouble; residualmean[scanid]=tmpdouble;
-  }
-  infile.close();
-  Int_t filerange[2]={0,10},Nsigma=3,methodid=1;
-  Int_t Nboffile=filerange[1]-filerange[0]+1;
-
-
-  for(Int_t scani=0;scani<Nbofscan;scani++){
-  Double_t truthpos[11];
-  for(Int_t filei=0;filei<11;filei++)
-	 truthpos[filei]=16-filei*0.5+residualmean[scani]; //fitpara[scani][3];
-  
-  
   TF1 *f1 = new TF1("f1","gaus");
-
+  Int_t scani=1,filerange[2]={8,22},Nsigma=3,methodid=1;
+  Int_t Nboffile=filerange[1]-filerange[0]+1;
+  Double_t fitpara[6][4],rangefit[2]={3,14};
+  ifstream infile(txtdir+"fitpara.txt", ios::in);
+  TString tmpstr;
+  Double_t tmpdouble;
+  infile>>tmpstr;
+  for(Int_t scanid=0;scanid<6;scanid++){
+		infile>>tmpdouble; fitpara[scanid][0]=tmpdouble;
+		infile>>tmpdouble; fitpara[scanid][1]=tmpdouble;
+		infile>>tmpdouble; fitpara[scanid][2]=tmpdouble;
+		infile>>tmpdouble; fitpara[scanid][3]=tmpdouble;
+  }
+  infile.close();
+  
+  Double_t truthpos[33];
+  for(Int_t filei=0;filei<33;filei++)
+	 truthpos[filei]=16-filei*0.5+fitpara[scani][3];
+  
 
   Double_t uncorrectedmeasuredposarray[Nboffile],correctedmeasuredposarray[Nboffile],uncorrectedresidualarray[Nboffile],correctedresidualarray[Nboffile];
   TH1D* uncorrectedmeasuredposhist[Nboffile],*correctedmeasuredposhist[Nboffile],*uncorrectedresidualhist[Nboffile],*correctedresidualhist[Nboffile];
@@ -97,7 +34,7 @@ void slewing(){
 	 // [filei]=new TH1D(""+TString::Format("%d",filei),"",100,-100,100);
   }
 
-  TFile* inrootfile=new TFile(rootdatadir+"rootdata/lwaveform"+TString::Format("%d",scani)+"energyless.root");
+  TFile* inrootfile=new TFile(rootdatadir+"rootdata/lwaveform"+TString::Format("%d",scani+1)+"cutLEDless.root");
   TTree* intree=(TTree*)inrootfile->Get("wavetree");
   Int_t fileid;
   Float_t intch[9];
@@ -109,10 +46,10 @@ void slewing(){
   for(Int_t itr=0;itr<nEntries;itr++){
 	 intree->GetEntry(itr);
 	 if(fileid<filerange[0]||fileid>filerange[1]) continue;
-	 if(fileid<7)
-		measuredpos[itr]=((intch[0]+intch[1]+intch[2])*ypos[0]+(intch[3]+intch[4]+intch[5])*ypos[1]+(intch[6]+intch[7]+intch[8])*ypos[2])/(intch[0]+intch[1]+intch[2]+intch[3]+intch[4]+intch[5]+intch[6]+intch[7]+intch[8]);
+	 if(fileid<15)
+		measuredpos[itr]=((intch[0]+intch[1]+intch[2])*14+(intch[3]+intch[4]+intch[5])*10+(intch[6]+intch[7]+intch[8])*6)/(intch[0]+intch[1]+intch[2]+intch[3]+intch[4]+intch[5]+intch[6]+intch[7]+intch[8]);
 	 else
-		measuredpos[itr]=((intch[0]+intch[1]+intch[2])*ypos[1]+(intch[3]+intch[4]+intch[5])*ypos[2]+(intch[6]+intch[7]+intch[8])*ypos[3])/(intch[0]+intch[1]+intch[2]+intch[3]+intch[4]+intch[5]+intch[6]+intch[7]+intch[8]);
+		measuredpos[itr]=((intch[0]+intch[1]+intch[2])*10+(intch[3]+intch[4]+intch[5])*6+(intch[6]+intch[7]+intch[8])*2)/(intch[0]+intch[1]+intch[2]+intch[3]+intch[4]+intch[5]+intch[6]+intch[7]+intch[8]);
 	 residual[itr]=measuredpos[itr]-truthpos[fileid];
 	 filearray[itr]=fileid;
 	 uncorrectedmeasuredposhist[fileid-filerange[0]]->Fill(measuredpos[itr]);
@@ -122,7 +59,7 @@ void slewing(){
   Int_t iteration=0,Nbofiteration=3; 
   while (iteration<Nbofiteration){
 	 TH1D* residualhist=new TH1D("residual","",70,-3.5,4.5);
-	 TH2D* correctionhist=new TH2D("correction"+TString::Format("%d",iteration),"",23,-3,20,70,-10,10);
+	 TH2D* correctionhist=new TH2D("correction"+TString::Format("%d",iteration),"",14,1,15,70,-4,4);
 
 	 for(Int_t i=0;i<nEntries;i++){
 		residualhist->Fill(residual[i]);  
@@ -183,7 +120,7 @@ void slewing(){
 	 correctionp1.rightmargin=0.11;
 	 correctionp1.statsxrange[0]=0.62;	correctionp1.statsxrange[1]=0.9;
 	 correctionp1.statsyrange[0]=0.66;	correctionp1.statsyrange[1]=0.93;
-	 correctionp1.plotname=plotdir+"scan"+TString::Format("%d",scani)+"corritr"+TString::Format("%d",iteration);
+	 correctionp1.plotname=plotdir+"scan"+TString::Format("%d",scani+1)+"corritr"+TString::Format("%d",iteration);
 	 Draw1TH2DWithPfTF(correctionhist,htemp,f2,correctionp1);
 
 	 // residualp1.format=".png";
@@ -196,26 +133,17 @@ void slewing(){
 	 residualp1.SetStatsrange(0.62,0.56,0.97,0.94);
 	 if(iteration==0) residualp1.textcontent ="MRPC Experiment: Before slew";
 	 else residualp1.textcontent ="MRPC Experiment: After slew";
-	 residualp1.plotname=plotdir+"scan"+TString::Format("%d",scani)+"timeitr"+TString::Format("%d",iteration);
+	 residualp1.plotname=plotdir+"scan"+TString::Format("%d",scani+1)+"timeitr"+TString::Format("%d",iteration);
 	 Draw1HistogramWithTF1(residualhist,ftemp,residualp1);
 
 	 iteration++;
-	 if(iteration==Nbofiteration){
-	   posreso[scani]=residualhist->GetRMS();
-		posresoerror[scani]=posreso[scani]/sqrt(2*(residualhist->GetEntries()-1));
-	 }
-	 else if(iteration==1)
-		preposreso[scani]=residualhist->GetRMS();
   }
-
-
-  
 
   for(Int_t filei=0;filei<Nboffile;filei++){
 	 uncorrectedmeasuredposarray[filei]=uncorrectedmeasuredposhist[filei]->GetMean();
-	 uncorrectedresidualarray[filei]=uncorrectedresidualhist[filei]->GetRMS();//Mean();
+	 uncorrectedresidualarray[filei]=uncorrectedresidualhist[filei]->GetMean();
 	 correctedmeasuredposarray[filei]=correctedmeasuredposhist[filei]->GetMean();
-	 correctedresidualarray[filei]=correctedresidualhist[filei]->GetRMS();//tMean();
+	 correctedresidualarray[filei]=correctedresidualhist[filei]->GetMean();
   }
 
   
@@ -224,7 +152,7 @@ void slewing(){
 
   veccompareplotx.push_back(uncorrectedmeasuredposarray);
   veccompareploty.push_back(uncorrectedresidualarray);
-  veccompareplotx.push_back(uncorrectedmeasuredposarray);
+  veccompareplotx.push_back(correctedmeasuredposarray);
   veccompareploty.push_back(correctedresidualarray);
   
   vecNbofpoints.push_back(Nboffile);
@@ -238,29 +166,9 @@ void slewing(){
   p1.SetY1range(-3,3);
   p1.withline="true";
   p1.textcontent="ECal: interpolation correction method "+TString::Format("%d",methodid);
-  p1.plotname=plotdir+"scan"+TString::Format("%d",scani)+"m"+TString::Format("%d",methodid)+"corrcompare";
+  p1.plotname=plotdir+"scan"+TString::Format("%d",scani+1)+"m"+TString::Format("%d",methodid)+"corrcompare";
   DrawNGraph(veccompareplotx,veccompareploty,2,vecNbofpoints,p1);
-
-  p1.textcontent="ECal: interpolation";
-  p1.plotname=plotdir+"scan"+TString::Format("%d",scani)+"sinshape";
-  Draw1Graph(uncorrectedmeasuredposarray,uncorrectedresidualarray,Nboffile,p1);
   
-  }
-
-  if(savetxt&&Nbofscan==6){
-	 ofstream outstd(txtdir+"resoforscansslewing.txt");
-	 outstd<<"scanid energy reso resoerror prereso\n";
-	 for(Int_t scani=0;scani<Nbofscan;scani++)
-		outstd<<scani<<" "<<energy[scani]<<" "<<posreso[scani]<<" "<<posresoerror[scani]<<" "<<preposreso[scani]<<"\n";
-  }
-	 
-  
-  plotpara p2;
-  p2.yname[0]="Position Resolution [cm]";
-  p2.xname="Energy [GeV]";
-  p2.textcontent="ECal: Dubna modual";
-  //  Draw1Graph(energy,posreso,Nbofscan,p2);
 
 
-  
 }

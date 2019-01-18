@@ -10,7 +10,7 @@ import os.path
 dfdir='../../data/ecalpos/dfdata/'
 
 outdatadir='../../data/nn/tensorflow/'
-NbofscanID=5
+NbofscanID=8
 scanID=[57,58,59,60,61,62,63,64]
 startfileID=[164427,172244,175925,183015,191430,195325,202522,210502]
 endfileID=[171339,174724,182152,185151,194436,201705,204706,212657]
@@ -34,51 +34,87 @@ def WriteTreeForEachScan():
     normvalue=np.loadtxt(dfdir+'normvalueinde.txt')
     filerange=[k for k in range(8,23)]
     Nbofwavepoint=27
-    wavearray=np.ones(244).reshape(1,244)
-    intarray=np.ones(10).reshape(1,10)
-    
-    for scanid in range(2,NbofscanID-1):
-        for fiid in range(0,33):
+
+    for scanid in range(5,NbofscanID-1):
+        wavearray1=np.ones(244).reshape(1,244)
+        intarray1=np.ones(10).reshape(1,10)
+        wavearray2=np.ones(244).reshape(1,244)
+        intarray2=np.ones(10).reshape(1,10)
+        for fiid in filerange:
             if fiid in filerange:
                 if fiid <15:
                     relatedpixels=longimap[:3,scanid-1:scanid+2].reshape(9)
                     relatednorm=normvalue[:3,scanid-1:scanid+2].reshape(9)
-                    pos=16-fiid*0.5-10+10
+                    pos=(fiid-filerange[0])*0.5+10
+               
+                    wave,integral=ReadSingleRawText(filenamedf['scanstart'+str(scanID[scanid])].iloc[fiid],relatedpixels,relatednorm,Nbofwavepoint)
+              
+                    wavearray1=np.concatenate((wavearray1,np.concatenate((np.array(wave),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
+                    intarray1=np.concatenate((intarray1,np.concatenate((np.array(integral),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
+                   
                 else:
                     relatedpixels=longimap[1:,scanid-1:scanid+2].reshape(9)
                     relatednorm=normvalue[1:,scanid-1:scanid+2].reshape(9)
-                    pos=16-fiid*0.5-6+10
+                    pos=(fiid-15)*0.5+10
+                    wave,integral=ReadSingleRawText(filenamedf['scanstart'+str(scanID[scanid])].iloc[fiid],relatedpixels,relatednorm,Nbofwavepoint)
+                    wavearray2=np.concatenate((wavearray2,np.concatenate((np.array(wave),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
+                    intarray2=np.concatenate((intarray2,np.concatenate((np.array(integral),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
                 print(scanid,fiid)
                
-                wave,integral=ReadSingleRawText(filenamedf['scanstart'+str(scanID[scanid])].iloc[fiid],relatedpixels,relatednorm,Nbofwavepoint)
-                # print(np.array(wave).shape,((np.ones(len(integral)).reshape(len(integral),1))*pos).shape)
-                # print(np.concatenate((np.array(wave),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=0))
-                wavearray=np.concatenate((wavearray,np.concatenate((np.array(wave),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
-                intarray=np.concatenate((intarray,np.concatenate((np.array(integral),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
-
-        # print(wavearray[1,18:27])
-        cnnwave1=wavearray[1:,:9]
-        cnnwave2=wavearray[1:,9:18]
-        cnnwave3=wavearray[1:,18:27]
+        # print(wavearray1[1,18:27])
+        cnnwave1=wavearray1[1:,:9]
+        cnnwave2=wavearray1[1:,9:18]
+        cnnwave3=wavearray1[1:,18:27]
         for k in range(1,9):
-            cnnwave1=np.concatenate((cnnwave1,wavearray[1:,27*k:27*k+9]),axis=1)
-            cnnwave2=np.concatenate((cnnwave2,wavearray[1:,27*k+9:27*k+18]),axis=1)
-            cnnwave3=np.concatenate((cnnwave3,wavearray[1:,27*k+18:27*k+27]),axis=1)
-        cnnwave=np.concatenate((cnnwave1,cnnwave2,cnnwave3,wavearray[1:,-1].reshape(cnnwave1.shape[0],1)),axis=1)
+            cnnwave1=np.concatenate((cnnwave1,wavearray1[1:,27*k:27*k+9]),axis=1)
+            cnnwave2=np.concatenate((cnnwave2,wavearray1[1:,27*k+9:27*k+18]),axis=1)
+            cnnwave3=np.concatenate((cnnwave3,wavearray1[1:,27*k+18:27*k+27]),axis=1)
+        cnnwave=np.concatenate((cnnwave1,cnnwave2,cnnwave3,wavearray1[1:,-1].reshape(cnnwave1.shape[0],1)),axis=1)
         # print(cnnwave[0,160:171])
-        intarray=intarray[1:,:]
-        wavearray=wavearray[1:,:]
-        np.random.shuffle(intarray)
-        np.random.shuffle(wavearray)
+        intarray1=intarray1[1:,:]
+        wavearray1=wavearray1[1:,:]
+        np.random.shuffle(intarray1)
+        np.random.shuffle(wavearray1)
         np.random.shuffle(cnnwave)
- 
-        with open(outdatadir+'integralscan'+str(scanid)+'.dat', 'wb') as f:
-            pickle.dump(intarray, f)
-        with open(outdatadir+'wavescan'+str(scanid)+'.dat', 'wb') as f:
-            pickle.dump(wavearray, f)
-        with open(outdatadir+'cnnwavescan'+str(scanid)+'.dat', 'wb') as f:
-            pickle.dump(cnnwave, f)
+        dfint=pd.DataFrame({'label': intarray1[:,-1]})
+        dfwave=pd.DataFrame({'label': wavearray1[:,-1]})
+        dfcnnwave=pd.DataFrame({'label': cnnwave[:,-1]})
+        
+        with open(outdatadir+'integralscan'+str(scanid)+'row1.dat', 'wb') as f:
+            pickle.dump(dict(data=intarray1[:,:-1],label=dfint), f)
+        with open(outdatadir+'wavescan'+str(scanid)+'row1.dat', 'wb') as f:
+            pickle.dump(dict(data=wavearray1[:,:-1],label=dfwave), f)
+        with open(outdatadir+'cnnwavescan'+str(scanid)+'row1.dat', 'wb') as f:
+            pickle.dump(dict(data=cnnwave[:,:-1],label=dfcnnwave), f)
         print(cnnwave.shape)
+
+        # print(wavearray2[1,18:27])
+        cnnwave1=wavearray2[1:,:9]
+        cnnwave2=wavearray2[1:,9:18]
+        cnnwave3=wavearray2[1:,18:27]
+        for k in range(1,9):
+            cnnwave1=np.concatenate((cnnwave1,wavearray2[1:,27*k:27*k+9]),axis=1)
+            cnnwave2=np.concatenate((cnnwave2,wavearray2[1:,27*k+9:27*k+18]),axis=1)
+            cnnwave3=np.concatenate((cnnwave3,wavearray2[1:,27*k+18:27*k+27]),axis=1)
+        cnnwave=np.concatenate((cnnwave1,cnnwave2,cnnwave3,wavearray2[1:,-1].reshape(cnnwave1.shape[0],1)),axis=1)
+        # print(cnnwave[0,160:171])
+        intarray2=intarray2[1:,:]
+        wavearray2=wavearray2[1:,:]
+        np.random.shuffle(intarray2)
+        np.random.shuffle(wavearray2)
+        np.random.shuffle(cnnwave)
+        dfint=pd.DataFrame({'label': intarray2[:,-1]})
+        dfwave=pd.DataFrame({'label': wavearray2[:,-1]})
+        dfcnnwave=pd.DataFrame({'label': cnnwave[:,-1]})
+
+        with open(outdatadir+'integralscan'+str(scanid)+'row2.dat', 'wb') as f:
+            pickle.dump(dict(data=intarray2[:,:-1],label=dfint), f)
+        with open(outdatadir+'wavescan'+str(scanid)+'row2.dat', 'wb') as f:
+            pickle.dump(dict(data=wavearray2[:,:-1],label=dfwave), f)
+        with open(outdatadir+'cnnwavescan'+str(scanid)+'row2.dat', 'wb') as f:
+            pickle.dump(dict(data=cnnwave[:,:-1],label=dfcnnwave), f)
+        print(cnnwave.shape)
+        
 
 def ReadSingleRawText(filename,relatedpixels,relatednorm,Nbofwavepoint):
     firstEvent=True
@@ -155,10 +191,20 @@ def ReadSingleRawTxTforNormIndependent(filename,relatedpixels):
     return list(maxpixelvalue/eventid)
 
 
-
-
-
-WriteTreeForEachScan()
+def WriteDataForEachRow(rowi=1):
+    Nbofevents=300000
+    wave=np.ones(245).reshape(1,245)
+    for scanid in range(1,NbofscanID-1):
+        with open(outdatadir+'cnnwavescan'+str(scanid)+'row'+str(rowi)+'.dat', 'rb') as f:
+            data=pickle.load(f)
+        wave=np.concatenate((wave,np.concatenate((data['data'],data['label'],np.ones(data['label'].shape[0]).reshape(data['label'].shape[0],1)*scanid),axis=1)),axis=0)
+    np.random.shuffle(wave)
+    dfcnnwave=pd.DataFrame({'label': wave[1:Nbofevents+1,-2],'scan':wave[1:Nbofevents+1,-1]})
+    
+    with open(outdatadir+'cnnwaverow'+str(rowi)+'.dat', 'wb') as f:
+        pickle.dump(dict(data=wave[1:Nbofevents+1,:-2],label=dfcnnwave), f)
+    print(wave[1:Nbofevents+1,:-2].shape,dfcnnwave.shape)
+# WriteTreeForEachScan()
 
 
 

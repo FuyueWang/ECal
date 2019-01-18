@@ -22,4 +22,4 @@ sed -i 's/,/ /g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/valpr
 sed -i 's/,/ /g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/valpredscan5row1.csv
 sed -i 's/,/ /g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/valpredscan5row2.csv
 sed -i 's/,/ /g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/valpredscan6row1.csv
-sed -i 's/,/ /g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/valpredscan7row2.csv
+sed -i 's/,/ /g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/valpredscan6row2.csv

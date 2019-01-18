@@ -157,18 +157,28 @@ from ROOT import TFile, TTree
 # WriteTreeForEachScan3by6()
 
 def WriteTreeForEachScan():
-    Nbofevents=10000
+    Nbofevents=30000
     filenamedf=pd.read_csv(dfdatadir+'filename.csv')
     normvalue=np.loadtxt(dfdatadir+'normvalueinde.txt')
     intch = array('f',9*[0.])
     fileid = array('i',[0])
 
     for scanid in range(Nbofscan):
-        f = TFile(rootdatadir+"lwaveform"+str(scanid)+"energyless.root", 'recreate' )
-        tree = TTree( 'wavetree', 'wavetree' )
-        # tree.Branch('wavech',wavech,'wavech[243]/F')
-        tree.Branch('intch',intch,'intch[9]/F')
-        tree.Branch('fileid',fileid,'fileid/I')
+        f = TFile(rootdatadir+"lwaveform"+str(scanid)+"energy.root", 'recreate' )
+        tree1 = TTree( 'wavetreerow1', 'wavetree' )
+        # tree1.Branch('wavech',wavech,'wavech[243]/F')
+        tree1.Branch('intch',intch,'intch[9]/F')
+        tree1.Branch('fileid',fileid,'fileid/I')
+        tree2 = TTree( 'wavetreerow2', 'wavetree' )
+        # tree2.Branch('wavech',wavech,'wavech[243]/F')
+        tree2.Branch('intch',intch,'intch[9]/F')
+        tree2.Branch('fileid',fileid,'fileid/I')
+        tree3 = TTree( 'wavetreerow3', 'wavetree' )
+        # tree3.Branch('wavech',wavech,'wavech[243]/F')
+        tree3.Branch('intch',intch,'intch[9]/F')
+        tree3.Branch('fileid',fileid,'fileid/I')
+
+        
         for fiid in range(filenamedf.shape[0]):
             if fiid < 15:
                 relatedpixels=longimap[scanid:scanid+3,1:4].reshape(9)
@@ -186,7 +196,12 @@ def WriteTreeForEachScan():
             for itr in range(intarray.shape[0]):
                 for k in range(9):
                     intch[k]=intarray[itr,k]
-                tree.Fill()
+                if fiid <15:
+                    tree1.Fill()
+                elif fiid<33:
+                    tree2.Fill()
+                else:
+                    tree3.Fill()
         f.Write()
         f.Close()
 WriteTreeForEachScan()

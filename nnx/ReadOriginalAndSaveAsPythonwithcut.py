@@ -71,52 +71,135 @@ def WriteTreeForEachScan():
     normvalue=np.loadtxt(dfdatadir+'normvalueinde.txt')
     Nbofwavepoint=27
     Nbofevents=40000
-    wavearray=np.ones(Nbofwavepoint*9+1).reshape(1,Nbofwavepoint*9+1)
-    intarray=np.ones(10).reshape(1,10)
-    filerange=range(15,33) #range(0,filenamedf.shape[0])
-    for scanid in range(Nbofscan):
+   
+    filerange=range(0,filenamedf.shape[0]) #range(15,33) #
+    for scanid in range(0,1): #Nbofscan):
+        wavearray1=np.ones(Nbofwavepoint*9+1).reshape(1,Nbofwavepoint*9+1)
+        intarray1=np.ones(10).reshape(1,10)
+        wavearray2=np.ones(Nbofwavepoint*9+1).reshape(1,Nbofwavepoint*9+1)
+        intarray2=np.ones(10).reshape(1,10)
+        wavearray3=np.ones(Nbofwavepoint*9+1).reshape(1,Nbofwavepoint*9+1)
+        intarray3=np.ones(10).reshape(1,10)
         for fiid in filerange:
             # print(scanid,fiid)
             if fiid < 15:
                 relatedpixels=longimap[scanid:scanid+3,1:4].reshape(9)
                 relatednorm=normvalue[scanid:scanid+3,1:4].reshape(9)
                 pos=fiid*0.2+10
+                wave,integral=ReadSingleRawTxT(filenamedf['scanstart'+str(longimap[scanid+1,2])].iloc[fiid],relatedpixels,relatednorm,Nbofevents,Nbofwavepoint,thisledch=ledch,thisbeamch=beamch)
+                
+                # print(wavearray.shape,wave.shape,integral.shape[0])
+                wavearray1=np.concatenate((wavearray1,np.concatenate((wave,(np.ones(integral.shape[0]).reshape(integral.shape[0],1))*pos),axis=1)),axis=0)
+                intarray1=np.concatenate((intarray1,np.concatenate((integral,(np.ones(integral.shape[0]).reshape(integral.shape[0],1))*pos),axis=1)),axis=0)
+
+                
             elif fiid < 33:
                 relatedpixels=longimap[scanid:scanid+3,2:5].reshape(9)
                 relatednorm=normvalue[scanid:scanid+3,2:5].reshape(9)
                 pos=(fiid-15)*0.2+10
+                wave,integral=ReadSingleRawTxT(filenamedf['scanstart'+str(longimap[scanid+1,2])].iloc[fiid],relatedpixels,relatednorm,Nbofevents,Nbofwavepoint,thisledch=ledch,thisbeamch=beamch)
+                
+                # print(wavearray.shape,wave.shape,integral.shape[0])
+                wavearray2=np.concatenate((wavearray2,np.concatenate((wave,(np.ones(integral.shape[0]).reshape(integral.shape[0],1))*pos),axis=1)),axis=0)
+                intarray2=np.concatenate((intarray2,np.concatenate((integral,(np.ones(integral.shape[0]).reshape(integral.shape[0],1))*pos),axis=1)),axis=0)
+
             else:
                 relatedpixels=longimap[scanid:scanid+3,3:6].reshape(9)
                 relatednorm=normvalue[scanid:scanid+3,3:6].reshape(9)
                 pos=(fiid-33)*0.2+10
-            print(scanid,fiid,pos)
-            wave,integral=ReadSingleRawTxT(filenamedf['scanstart'+str(longimap[scanid+1,2])].iloc[fiid],relatedpixels,relatednorm,Nbofevents,Nbofwavepoint,thisledch=ledch,thisbeamch=beamch)
-            
-            # print(wavearray.shape,wave.shape,integral.shape[0])
-            wavearray=np.concatenate((wavearray,np.concatenate((wave,(np.ones(integral.shape[0]).reshape(integral.shape[0],1))*pos),axis=1)),axis=0)
-            intarray=np.concatenate((intarray,np.concatenate((integral,(np.ones(integral.shape[0]).reshape(integral.shape[0],1))*pos),axis=1)),axis=0)
+                wave,integral=ReadSingleRawTxT(filenamedf['scanstart'+str(longimap[scanid+1,2])].iloc[fiid],relatedpixels,relatednorm,Nbofevents,Nbofwavepoint,thisledch=ledch,thisbeamch=beamch)
+                
+                # print(wavearray.shape,wave.shape,integral.shape[0])
+                wavearray3=np.concatenate((wavearray3,np.concatenate((wave,(np.ones(integral.shape[0]).reshape(integral.shape[0],1))*pos),axis=1)),axis=0)
+                intarray3=np.concatenate((intarray3,np.concatenate((integral,(np.ones(integral.shape[0]).reshape(integral.shape[0],1))*pos),axis=1)),axis=0)
 
+            print(scanid,fiid,pos)
+            
         # print(wavearray[1,18:27])
-        cnnwave1=wavearray[1:,:9]
-        cnnwave2=wavearray[1:,9:18]
-        cnnwave3=wavearray[1:,18:27]
+        cnnwave1=wavearray1[1:,:9]
+        cnnwave2=wavearray1[1:,9:18]
+        cnnwave3=wavearray1[1:,18:27]
         for k in range(1,9):
-            cnnwave1=np.concatenate((cnnwave1,wavearray[1:,27*k:27*k+9]),axis=1)
-            cnnwave2=np.concatenate((cnnwave2,wavearray[1:,27*k+9:27*k+18]),axis=1)
-            cnnwave3=np.concatenate((cnnwave3,wavearray[1:,27*k+18:27*k+27]),axis=1)
-        cnnwave=np.concatenate((cnnwave1,cnnwave2,cnnwave3,wavearray[1:,-1].reshape(cnnwave1.shape[0],1)),axis=1)
+            cnnwave1=np.concatenate((cnnwave1,wavearray1[1:,27*k:27*k+9]),axis=1)
+            cnnwave2=np.concatenate((cnnwave2,wavearray1[1:,27*k+9:27*k+18]),axis=1)
+            cnnwave3=np.concatenate((cnnwave3,wavearray1[1:,27*k+18:27*k+27]),axis=1)
+        cnnwave=np.concatenate((cnnwave1,cnnwave2,cnnwave3,wavearray1[1:,-1].reshape(cnnwave1.shape[0],1)),axis=1)
+        
         # print(cnnwave[0,160:171])
-        intarray=intarray[1:,:]
-        wavearray=wavearray[1:,:]
-        np.random.shuffle(intarray)
-        np.random.shuffle(wavearray)
+        intarray1=intarray1[1:,:]
+        wavearray1=wavearray1[1:,:]
+        np.random.shuffle(intarray1)
+        np.random.shuffle(wavearray1)
         np.random.shuffle(cnnwave)
- 
-        with open(outdatadir+'integralscan'+str(scanid)+'2.dat', 'wb') as f:
-            pickle.dump(intarray, f)
-        with open(outdatadir+'wavescan'+str(scanid)+'2.dat', 'wb') as f:
-            pickle.dump(wavearray, f)
-        with open(outdatadir+'cnnwavescan'+str(scanid)+'2.dat', 'wb') as f:
-            pickle.dump(cnnwave, f)
+        dfint=pd.DataFrame({'label': intarray1[:,-1]})
+        dfwave=pd.DataFrame({'label': wavearray1[:,-1]})
+        dfcnnwave=pd.DataFrame({'label': cnnwave[:,-1]})
+
+        with open(outdatadir+'integralscan'+str(scanid)+'row1.dat', 'wb') as f:
+            pickle.dump(dict(data=intarray1[:,:-1],label=dfint), f)
+        with open(outdatadir+'wavescan'+str(scanid)+'row1.dat', 'wb') as f:
+            pickle.dump(dict(data=wavearray1[:,:-1],label=dfwave), f)
+        with open(outdatadir+'cnnwavescan'+str(scanid)+'row1.dat', 'wb') as f:
+            pickle.dump(dict(data=cnnwave[:,:-1],label=dfcnnwave), f)
         print(cnnwave.shape)
+
+ # print(wavearray[1,18:27])
+        cnnwave1=wavearray2[1:,:9]
+        cnnwave2=wavearray2[1:,9:18]
+        cnnwave3=wavearray2[1:,18:27]
+        for k in range(1,9):
+            cnnwave1=np.concatenate((cnnwave1,wavearray2[1:,27*k:27*k+9]),axis=1)
+            cnnwave2=np.concatenate((cnnwave2,wavearray2[1:,27*k+9:27*k+18]),axis=1)
+            cnnwave3=np.concatenate((cnnwave3,wavearray2[1:,27*k+18:27*k+27]),axis=1)
+        cnnwave=np.concatenate((cnnwave1,cnnwave2,cnnwave3,wavearray2[1:,-1].reshape(cnnwave1.shape[0],1)),axis=1)
+        
+        # print(cnnwave[0,160:171])
+        intarray2=intarray2[1:,:]
+        wavearray2=wavearray2[1:,:]
+        np.random.shuffle(intarray2)
+        np.random.shuffle(wavearray2)
+        np.random.shuffle(cnnwave)
+        dfint=pd.DataFrame({'label': intarray2[:,-1]})
+        dfwave=pd.DataFrame({'label': wavearray2[:,-1]})
+        dfcnnwave=pd.DataFrame({'label': cnnwave[:,-1]})
+
+        with open(outdatadir+'integralscan'+str(scanid)+'row2.dat', 'wb') as f:
+            pickle.dump(dict(data=intarray2[:,:-1],label=dfint), f)
+        with open(outdatadir+'wavescan'+str(scanid)+'row2.dat', 'wb') as f:
+            pickle.dump(dict(data=wavearray2[:,:-1],label=dfwave), f)
+        with open(outdatadir+'cnnwavescan'+str(scanid)+'row2.dat', 'wb') as f:
+            pickle.dump(dict(data=cnnwave[:,:-1],label=dfcnnwave), f)
+        print(cnnwave.shape)
+
+
+         # print(wavearray3[1,18:27])
+        cnnwave1=wavearray3[1:,:9]
+        cnnwave2=wavearray3[1:,9:18]
+        cnnwave3=wavearray3[1:,18:27]
+        for k in range(1,9):
+            cnnwave1=np.concatenate((cnnwave1,wavearray3[1:,27*k:27*k+9]),axis=1)
+            cnnwave2=np.concatenate((cnnwave2,wavearray3[1:,27*k+9:27*k+18]),axis=1)
+            cnnwave3=np.concatenate((cnnwave3,wavearray3[1:,27*k+18:27*k+27]),axis=1)
+        cnnwave=np.concatenate((cnnwave1,cnnwave2,cnnwave3,wavearray3[1:,-1].reshape(cnnwave1.shape[0],1)),axis=1)
+        
+        # print(cnnwave[0,160:171])
+        intarray3=intarray3[1:,:]
+        wavearray3=wavearray3[1:,:]
+        np.random.shuffle(intarray3)
+        np.random.shuffle(wavearray3)
+        np.random.shuffle(cnnwave)
+        dfint=pd.DataFrame({'label': intarray3[:,-1]})
+        dfwave=pd.DataFrame({'label': wavearray3[:,-1]})
+        dfcnnwave=pd.DataFrame({'label': cnnwave[:,-1]})
+
+        with open(outdatadir+'integralscan'+str(scanid)+'row3.dat', 'wb') as f:
+            pickle.dump(dict(data=intarray3[:,:-1],label=dfint), f)
+        with open(outdatadir+'wavescan'+str(scanid)+'row3.dat', 'wb') as f:
+            pickle.dump(dict(data=wavearray3[:,:-1],label=dfwave), f)
+        with open(outdatadir+'cnnwavescan'+str(scanid)+'row3.dat', 'wb') as f:
+            pickle.dump(dict(data=cnnwave[:,:-1],label=dfcnnwave), f)
+        print(cnnwave.shape)
+
+
+        
 WriteTreeForEachScan()
