@@ -241,7 +241,7 @@ def ReadSingleRawTxT(filename,relatedtowers,relatedtowersnorm,Nbofevents,Nbofwav
                         if len(line[1:])==60:
                             pixelarrayid=np.where(relatedtowers==int(line[0]))[0][0]
                             pixelint[pixelarrayid]=sum(list(map(int,line[1:])))/relatedtowersnorm[pixelarrayid]
-                            pixelwave[pixelarrayid,:]=np.array(list(map(int,line[20:20+Nbofwavepoint]))) #/relatedtowersnorm[pixelarrayid]
+                            pixelwave[pixelarrayid,:]=np.array(list(map(int,line[20:20+Nbofwavepoint])))/relatedtowersnorm[pixelarrayid]
                     elif int(line[0])==thisledch:
                         ledtrigger=sum(list(map(int,line[1:])))
                     elif int(line[0])==thisbeamch:
@@ -266,17 +266,17 @@ def WriteTreeForEachScan():
         wavearray2=np.ones(244).reshape(1,244)
         intarray2=np.ones(10).reshape(1,10)
         for fiid in filerange:
+            pos=(fiid-filerange[0])*0.5+2.5
             if fiid <5:
                 relatedpixels=longienergymap[1:4,3:6].reshape(9)
                 relatednorm=normvalue[1:4,3:6].reshape(9)
-                pos=(fiid-filerange[0])*0.5+10
                 wave,integral=ReadSingleRawTxT(filenamedf['energy'+str(scanid)].iloc[fiid],relatedpixels,relatednorm,Nbofevents,Nbofwavepoint,thisledch=8,thisbeamch=7)
                 wavearray1=np.concatenate((wavearray1,np.concatenate((np.array(wave),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
                 intarray1=np.concatenate((intarray1,np.concatenate((np.array(integral),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
             else:
                 relatedpixels=longienergymap[2:5,3:6].reshape(9)
                 relatednorm=normvalue[2:5,3:6].reshape(9)
-                pos=(fiid-5)*0.5+10
+                pos=pos-4
                 wave,integral=ReadSingleRawTxT(filenamedf['energy'+str(scanid)].iloc[fiid],relatedpixels,relatednorm,Nbofevents,Nbofwavepoint,thisledch=8,thisbeamch=7)
                 wavearray2=np.concatenate((wavearray2,np.concatenate((np.array(wave),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
                 intarray2=np.concatenate((intarray2,np.concatenate((np.array(integral),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
@@ -341,5 +341,62 @@ def WriteTreeForEachScan():
         print(cnnwave.shape)
 
 
+def WriteTreeForEachScanMerge():
+    Nbofevents=30000
+    filenamedf=pd.read_csv(dfdatadir+'energyfilename.csv')
+    normvalue=np.loadtxt(dfdatadir+'normvalueinde.txt')
+    filerange=[k for k in range(Nbofenergypos)]
+    Nbofwavepoint=27
 
+    for scanid in range(Nbofenergy):
+        wavearray=np.ones(244).reshape(1,244)
+        intarray=np.ones(10).reshape(1,10)
+ 
+        for fiid in filerange:
+            pos=(fiid-filerange[0])*0.5+2.5
+            if fiid <5:
+                relatedpixels=longienergymap[1:4,3:6].reshape(9)
+                relatednorm=normvalue[1:4,3:6].reshape(9)
+                
+               
+            else:
+                relatedpixels=longienergymap[2:5,3:6].reshape(9)
+                relatednorm=normvalue[2:5,3:6].reshape(9)
+                pos=pos-4
+          
+            wave,integral=ReadSingleRawTxT(filenamedf['energy'+str(scanid)].iloc[fiid],relatedpixels,relatednorm,Nbofevents,Nbofwavepoint,thisledch=8,thisbeamch=7)
+            wavearray=np.concatenate((wavearray,np.concatenate((np.array(wave),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
+            intarray=np.concatenate((intarray,np.concatenate((np.array(integral),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
+            print(scanid,fiid,pos)
+
+        # print(wavearray[1,18:27])
+        cnnwave1=wavearray[1:,:9]
+        cnnwave2=wavearray[1:,9:18]
+        cnnwave3=wavearray[1:,18:27]
+        for k in range(1,9):
+            cnnwave1=np.concatenate((cnnwave1,wavearray[1:,27*k:27*k+9]),axis=1)
+            cnnwave2=np.concatenate((cnnwave2,wavearray[1:,27*k+9:27*k+18]),axis=1)
+            cnnwave3=np.concatenate((cnnwave3,wavearray[1:,27*k+18:27*k+27]),axis=1)
+        cnnwave=np.concatenate((cnnwave1,cnnwave2,cnnwave3,wavearray[1:,-1].reshape(cnnwave1.shape[0],1)),axis=1)
+        
+        # print(cnnwave[0,160:171])
+        intarray=intarray[1:,:]
+        wavearray=wavearray[1:,:]
+        np.random.shuffle(intarray)
+        np.random.shuffle(wavearray)
+        np.random.shuffle(cnnwave)
+        dfint=pd.DataFrame({'label': intarray[:,-1]})
+        dfwave=pd.DataFrame({'label': wavearray[:,-1]})
+        dfcnnwave=pd.DataFrame({'label': cnnwave[:,-1]})
+
+        with open(outdatadir+'integralscan'+str(scanid)+'.dat', 'wb') as f:
+            pickle.dump(dict(data=intarray[:,:-1],label=dfint), f)
+        with open(outdatadir+'wavescan'+str(scanid)+'.dat', 'wb') as f:
+            pickle.dump(dict(data=wavearray[:,:-1],label=dfwave), f)
+        with open(outdatadir+'cnnwavescan'+str(scanid)+'.dat', 'wb') as f:
+            pickle.dump(dict(data=cnnwave[:,:-1],label=dfcnnwave), f)
+        print(cnnwave.shape)
+
+
+# WriteTreeForEachScanMerge()
 WriteTreeForEachScan()

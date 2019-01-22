@@ -35,7 +35,7 @@ def WriteTreeForEachScan():
     filerange=[k for k in range(8,23)]
     Nbofwavepoint=27
 
-    for scanid in range(5,NbofscanID-1):
+    for scanid in range(1,5): #NbofscanID-1):
         wavearray1=np.ones(244).reshape(1,244)
         intarray1=np.ones(10).reshape(1,10)
         wavearray2=np.ones(244).reshape(1,244)
@@ -45,7 +45,7 @@ def WriteTreeForEachScan():
                 if fiid <15:
                     relatedpixels=longimap[:3,scanid-1:scanid+2].reshape(9)
                     relatednorm=normvalue[:3,scanid-1:scanid+2].reshape(9)
-                    pos=(fiid-filerange[0])*0.5+10
+                    pos=(fiid-filerange[0])*0.5+1
                
                     wave,integral=ReadSingleRawText(filenamedf['scanstart'+str(scanID[scanid])].iloc[fiid],relatedpixels,relatednorm,Nbofwavepoint)
               
@@ -55,7 +55,7 @@ def WriteTreeForEachScan():
                 else:
                     relatedpixels=longimap[1:,scanid-1:scanid+2].reshape(9)
                     relatednorm=normvalue[1:,scanid-1:scanid+2].reshape(9)
-                    pos=(fiid-15)*0.5+10
+                    pos=(fiid-15)*0.5+1
                     wave,integral=ReadSingleRawText(filenamedf['scanstart'+str(scanID[scanid])].iloc[fiid],relatedpixels,relatednorm,Nbofwavepoint)
                     wavearray2=np.concatenate((wavearray2,np.concatenate((np.array(wave),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
                     intarray2=np.concatenate((intarray2,np.concatenate((np.array(integral),(np.ones(len(integral)).reshape(len(integral),1))*pos),axis=1)),axis=0)
@@ -80,11 +80,11 @@ def WriteTreeForEachScan():
         dfwave=pd.DataFrame({'label': wavearray1[:,-1]})
         dfcnnwave=pd.DataFrame({'label': cnnwave[:,-1]})
         
-        with open(outdatadir+'integralscan'+str(scanid)+'row1.dat', 'wb') as f:
+        with open(outdatadir+'integralscancenter'+str(scanid)+'row1.dat', 'wb') as f:
             pickle.dump(dict(data=intarray1[:,:-1],label=dfint), f)
-        with open(outdatadir+'wavescan'+str(scanid)+'row1.dat', 'wb') as f:
+        with open(outdatadir+'wavescancenter'+str(scanid)+'row1.dat', 'wb') as f:
             pickle.dump(dict(data=wavearray1[:,:-1],label=dfwave), f)
-        with open(outdatadir+'cnnwavescan'+str(scanid)+'row1.dat', 'wb') as f:
+        with open(outdatadir+'cnnwavescancenter'+str(scanid)+'row1.dat', 'wb') as f:
             pickle.dump(dict(data=cnnwave[:,:-1],label=dfcnnwave), f)
         print(cnnwave.shape)
 
@@ -107,11 +107,11 @@ def WriteTreeForEachScan():
         dfwave=pd.DataFrame({'label': wavearray2[:,-1]})
         dfcnnwave=pd.DataFrame({'label': cnnwave[:,-1]})
 
-        with open(outdatadir+'integralscan'+str(scanid)+'row2.dat', 'wb') as f:
+        with open(outdatadir+'integralscancenter'+str(scanid)+'row2.dat', 'wb') as f:
             pickle.dump(dict(data=intarray2[:,:-1],label=dfint), f)
-        with open(outdatadir+'wavescan'+str(scanid)+'row2.dat', 'wb') as f:
+        with open(outdatadir+'wavescancenter'+str(scanid)+'row2.dat', 'wb') as f:
             pickle.dump(dict(data=wavearray2[:,:-1],label=dfwave), f)
-        with open(outdatadir+'cnnwavescan'+str(scanid)+'row2.dat', 'wb') as f:
+        with open(outdatadir+'cnnwavescancenter'+str(scanid)+'row2.dat', 'wb') as f:
             pickle.dump(dict(data=cnnwave[:,:-1],label=dfcnnwave), f)
         print(cnnwave.shape)
         
@@ -204,7 +204,7 @@ def WriteDataForEachRow(rowi=1):
     with open(outdatadir+'cnnwaverow'+str(rowi)+'.dat', 'wb') as f:
         pickle.dump(dict(data=wave[1:Nbofevents+1,:-2],label=dfcnnwave), f)
     print(wave[1:Nbofevents+1,:-2].shape,dfcnnwave.shape)
-# WriteTreeForEachScan()
+WriteTreeForEachScan()
 
 
 

@@ -21,21 +21,15 @@ def main():
     testdataname=''
     
 
-    # # CNN
-    # dataname=[supdir+'cnnwavescan'+str(scan)+'row'+str(row)+'.dat', 'data', 'label', 'label']
-    # modeldir=supdir+"CNNmodels"+str(scan)+'row1/'
-    # mynet=mynetwork.mycnnnetwork(dataname,modeldir,scan)
-
-    # # CNN train all the data in one row all together
-    # dataname=[supdir+'cnnwaverow'+str(row)+'.dat', 'data', 'label', 'label']
-    # modeldir=supdir+"CNNmodelsrow"+str(row)+'/'
-    # mynet=mynetwork.mycnnnetwork2(dataname,modeldir,row)
-
     # CNN
-    dataname=[supdir+'cnnwavescan'+str(scan)+'row'+str(row)+'.dat', 'data', 'label', 'label']
-    modeldir=supdir+"CNNmodels"+str(scan)+'row'+str(row)+'/'
-    mynet=mynetwork.mycnnnetwork3(dataname,modeldir,scan)
+    dataname=[supdir+'cnnwavescan'+str(scan)+'.dat', 'data', 'label', 'label']
+    modeldir=supdir+"CNNmodels"+str(scan)+'/'
+    mynet=mynetwork.mycnnnetwork1(dataname,modeldir,scan)
 
+    # # CNN
+    # dataname=[supdir+'cnnwavescan'+str(scan)+'.dat', 'data', 'label', 'label']
+    # modeldir=supdir+"CNNmodels"+str(scan)+'/'
+    # mynet=mynetwork.mycnnnetwork3(dataname,modeldir,scan)
 
     
     # # lstm
@@ -46,7 +40,7 @@ def main():
     # specific parameters
     
 
-    # DNN
+    # # DNN
     # dataname=[supdir+'integralscan'+str(scan)+'.dat', 'data', 'label', 'label']
     # modeldir=supdir+"DNNmodels"+str(scan)+'/'
     # mynet=mynetwork.mydnnnetwork(dataname,modeldir,scan)
@@ -58,7 +52,7 @@ def main():
     data = dataclass.dataclass(dataname,[mynet.trainsize,mynet.batchsize,mynet.validatesize],mynet.datadim, testdataname)
     training = trainmodel.trainmodel([mynet.startlearningrate, mynet.Nbofsaveriteractions, mynet.printiteractions, modeldir, mynet.Nboflearn, mynet.classificationthreshold], data, netarchitecture)
     training.train()
-    # training.validate()
+    # training.validate('valpred.csv')
     #  ----------------------------------------------------------------------#
 
 if __name__ == '__main__':

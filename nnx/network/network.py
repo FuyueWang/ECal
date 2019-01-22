@@ -15,24 +15,29 @@ import mynetwork
 supdir='../../../data/nnx/tensorflow/'
 
 def main():
-    scan=0
+    scan=0 #0,1
+    row=2 #1,2,3
     # # specific parameters
-    # dataname=[supdir+'cnnwavescan'+str(scan)+'.dat', 'data', 'label', 'label']
+    dataname=[supdir+'cnnwavescan'+str(scan)+'row'+str(row)+'.dat', 'data', 'label', 'label']
     testdataname=''
     # # CNN
-    # modeldir=supdir+"CNNmodels"+str(scan)+'/'
+    # modeldir=supdir+"CNNmodels"+str(scan)+'row'+str(row)+'/'
     # mynet=mynetwork.mycnnnetwork(dataname,modeldir,scan)
+
+
+    modeldir=supdir+"CNNmodels"+str(scan)+'row'+str(row)+'/'
+    mynet=mynetwork.mycnnnetwork2(dataname,modeldir,row)
 
     # lstm
     # modeldir=supdir+"LSTMmodels"+str(noi)+'/'
     # mynet=mynetwork.mylstmnetwork(dataname,modeldir,noi)
     
-    # specific parameters
-    dataname=[supdir+'integralscan'+str(scan)+'.dat', 'data', 'label', 'label']
+    # specific parameter
+    # dataname=[supdir+'integralscan'+str(scan)+'.dat', 'data', 'label', 'label']
 
-    # DNN
-    modeldir=supdir+"DNNmodels"+str(scan)+'/'
-    mynet=mynetwork.mydnnnetwork(dataname,modeldir,scan)
+    # # DNN
+    # modeldir=supdir+"DNNmodels"+str(scan)+'/'
+    # mynet=mynetwork.mydnnnetwork(dataname,modeldir,scan)
 
     
     #  ----------------------------------------------------------------------#

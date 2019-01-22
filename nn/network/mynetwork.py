@@ -3,26 +3,25 @@ import tensorflow as tf
 #     @abstractmethod
 #     def __init__(self,):
 
-
 class mycnnnetwork():
     """
     define every specific network
     """
     def __init__(self,dataname,modeldir,flag):
-        self.trainsize=250000
-        self.batchsize=10000 
-        self.validatesize=40000 
+        self.trainsize=180000
+        self.batchsize=5000 
+        self.validatesize=50000 
         
         self.datadim=[9,9,3,1] #[imput dim0 dim1..., output dim]
 
-        self.startlearningrate= 0.005
+        self.startlearningrate= 0.001
         self.classificationthreshold = 999 # set to be 999 for regression
-        self.Nbofsaveriteractions = 10000
-        self.printiteractions = 500
+        self.Nbofsaveriteractions = 30000
+        self.printiteractions = 100
         self.Nboflearn= 4
 
         if flag<7:
-            self.cnnlayer=[32,32,64]
+            self.cnnlayer=[32,64,24]
             self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
             self.dnnlayer=[self.datadim[-1]]
             self.dnnact=[tf.nn.relu]
@@ -31,9 +30,11 @@ class mycnnnetwork():
             self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
             self.dnnlayer=[self.datadim[-1]]
             self.dnnact=[tf.nn.relu]
-        if flag==3:
+        if flag==30:
             self.validatesize=30000 
         self.lstmlayer=[]
+
+
 
 class mycnnnetwork2():
     """
@@ -46,24 +47,24 @@ class mycnnnetwork2():
         
         self.datadim=[9,9,3,1] #[imput dim0 dim1..., output dim]
 
-        self.startlearningrate= 0.005
+        self.startlearningrate= 0.001
         self.classificationthreshold = 999 # set to be 999 for regression
         self.Nbofsaveriteractions = 10000
-        self.printiteractions = 500
+        self.printiteractions = 100
         self.Nboflearn= 4
 
-        if flag==1:
-            self.cnnlayer=[32,32,64]
+        if flag<7:
+            self.cnnlayer=[32,32,80,64]
             self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
-            self.dnnlayer=[self.datadim[-1]]
-            self.dnnact=[tf.nn.relu]
+            self.dnnlayer=[20,10,self.datadim[-1]]
+            self.dnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
         elif flag==2:
             self.cnnlayer=[32,64,64]
             self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
             self.dnnlayer=[10,self.datadim[-1]]
             self.dnnact=[tf.nn.tanh,tf.nn.relu]
-        if flag==10:
-            self.validatesize=30000 
+        if flag==3:
+            self.validatesize=33000 
         self.lstmlayer=[]
 
 
@@ -112,12 +113,12 @@ class mylstmnetwork():
 
         self.startlearningrate= 0.01
         self.classificationthreshold = 999 # set to be 999 for regression
-        self.Nbofsaveriteractions = 5000
+        self.Nbofsaveriteractions = 10000
         self.printiteractions = 100
         self.Nboflearn= 3
 
         if flag<7:
-            self.lstmlayer=[150]
+            self.lstmlayer=[50]
             self.dnnlayer=[10,self.datadim[-1]]
             self.dnnact=[tf.nn.tanh,tf.nn.relu]
         elif flag==8:
@@ -141,15 +142,15 @@ class mydnnnetwork():
         
         self.datadim=[9,1] #[imput dim0 dim1..., output dim]
 
-        self.startlearningrate= 0.005
+        self.startlearningrate= 0.01
         self.classificationthreshold = 999 # set to be 999 for regression
         self.Nbofsaveriteractions = 50000
         self.printiteractions = 500
         self.Nboflearn= 3
 
         if flag<7:
-            self.dnnlayer=[9,10,14,20,5,self.datadim[-1]]
-            self.dnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.tanh,tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
+            self.dnnlayer=[30,24,23,26,17,13,self.datadim[-1]]
+            self.dnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.tanh,tf.nn.tanh,tf.nn.tanh,None]
         elif flag==8:
             self.dnnlayer=[9,10,14,20,5,self.datadim[-1]]
             self.dnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.tanh,tf.nn.tanh,tf.nn.tanh,tf.nn.relu]

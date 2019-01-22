@@ -94,7 +94,7 @@ class trainmodel():
                         saver.save(sess, self.modeldir+"test",global_step=iter,write_meta_graph=False)
                     iter=iter+1
                     
-    def validate(self):
+    def validate(self,outname):
         x = tf.placeholder("float",[None]+self.traindata.datadim[:-1])
         y = tf.placeholder("float",[None]+[self.traindata.datadim[-1]])
 
@@ -122,7 +122,7 @@ class trainmodel():
             valpredlist=[valpred[k][0] for k in range(valpred.shape[0])]
             valy=[valy[k][0] for k in range(valy.shape[0])]
             df = pd.DataFrame(data={'valpred':valpredlist, 'truth':valy})
-            df.to_csv(self.modeldir+'valpred.csv')
+            df.to_csv(self.modeldir+outname)
             
     def test(self,flag):
         x = tf.placeholder("float",[None]+self.traindata.datadim[:-1])

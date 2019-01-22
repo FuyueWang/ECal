@@ -9,94 +9,63 @@ class mycnnnetwork():
     define every specific network
     """
     def __init__(self,dataname,modeldir,flag):
-        self.trainsize=100000
-        self.batchsize=10000 
-        self.validatesize=40000 
+        self.trainsize=250000
+        self.batchsize=5000 
+        self.validatesize=50000 
         
         self.datadim=[9,9,3,1] #[imput dim0 dim1..., output dim]
 
-        self.startlearningrate= 0.005
+        self.startlearningrate= 0.001
         self.classificationthreshold = 999 # set to be 999 for regression
         self.Nbofsaveriteractions = 10000
-        self.printiteractions = 500
+        self.printiteractions = 100
         self.Nboflearn= 4
 
         if flag<7:
             self.cnnlayer=[32,32,64]
             self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
-            self.dnnlayer=[self.datadim[-1]]
-            self.dnnact=[tf.nn.relu]
+            self.dnnlayer=[10,self.datadim[-1]]
+            self.dnnact=[tf.nn.tanh,tf.nn.relu]
         elif flag==8:
             self.cnnlayer=[32,32,64]
             self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
             self.dnnlayer=[self.datadim[-1]]
             self.dnnact=[tf.nn.relu]
-        # if flag==3:
-        #     self.validatesize=30000 
+        if flag==30:
+            self.validatesize=30000 
         self.lstmlayer=[]
 
-class mycnnnetwork2():
+class mycnnnetwork1():
     """
     define every specific network
     """
     def __init__(self,dataname,modeldir,flag):
         self.trainsize=250000
         self.batchsize=10000 
-        self.validatesize=40000 
+        self.validatesize=50000 
         
         self.datadim=[9,9,3,1] #[imput dim0 dim1..., output dim]
 
-        self.startlearningrate= 0.005
+        self.startlearningrate= 0.0005
         self.classificationthreshold = 999 # set to be 999 for regression
-        self.Nbofsaveriteractions = 10000
-        self.printiteractions = 500
-        self.Nboflearn= 4
-
-        if flag==1:
-            self.cnnlayer=[32,32,64]
-            self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
-            self.dnnlayer=[self.datadim[-1]]
-            self.dnnact=[tf.nn.relu]
-        elif flag==2:
-            self.cnnlayer=[32,64,64]
-            self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
-            self.dnnlayer=[10,self.datadim[-1]]
-            self.dnnact=[tf.nn.tanh,tf.nn.relu]
-        if flag==10:
-            self.validatesize=30000 
-        self.lstmlayer=[]
-
-
-class mycnnnetwork3():
-    """
-    define every specific network
-    """
-    def __init__(self,dataname,modeldir,flag):
-        self.trainsize=100000
-        self.batchsize=5000 
-        self.validatesize=40000 
-        
-        self.datadim=[9,9,3,1] #[imput dim0 dim1..., output dim]
-
-        self.startlearningrate= 0.001
-        self.classificationthreshold = 999 # set to be 999 for regression
-        self.Nbofsaveriteractions = 30000
+        self.Nbofsaveriteractions = 15000
         self.printiteractions = 100
-        self.Nboflearn= 4
+        self.Nboflearn= 3
 
         if flag<7:
-            self.cnnlayer=[32,64,24]
-            self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
-            self.dnnlayer=[self.datadim[-1]]
-            self.dnnact=[tf.nn.relu]
+            self.cnnlayer=[24,32,64,64]
+            self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
+            self.dnnlayer=[10,self.datadim[-1]]
+            self.dnnact=[tf.nn.tanh,tf.nn.relu]
         elif flag==8:
             self.cnnlayer=[32,32,64]
             self.cnnact=[tf.nn.tanh,tf.nn.tanh,tf.nn.relu]
             self.dnnlayer=[self.datadim[-1]]
             self.dnnact=[tf.nn.relu]
-        if flag==3:
+        if flag==30:
             self.validatesize=30000 
         self.lstmlayer=[]
+
 
 
 class mylstmnetwork():
@@ -135,15 +104,15 @@ class mydnnnetwork():
     define every specific network
     """
     def __init__(self,dataname,modeldir,flag):
-        self.trainsize=25000
+        self.trainsize=180000
         self.batchsize=10000 
-        self.validatesize=400000 
+        self.validatesize=50000 
         
         self.datadim=[9,1] #[imput dim0 dim1..., output dim]
 
         self.startlearningrate= 0.005
         self.classificationthreshold = 999 # set to be 999 for regression
-        self.Nbofsaveriteractions = 50000
+        self.Nbofsaveriteractions = 10000
         self.printiteractions = 500
         self.Nboflearn= 3
 

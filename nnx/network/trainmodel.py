@@ -64,11 +64,13 @@ class trainmodel():
                 while iter<Nbofiter:
                     startbatch=iter%self.traindata.Nbofbatch
                     inputx,inputy = self.traindata.Gettraindata(startbatch)
+                    inputy=inputy-9.5
                     sess.run(opt, feed_dict={x: inputx, y: inputy, learningi: thislearning})
                     
                     if iter % PrintCount == 0:
                         trainpred,trainloss,lrate=sess.run([prediction, loss,learning_rate],feed_dict={x: inputx, y: inputy, learningi: thislearning})
                         valx,valy=self.traindata.Getvaldata()
+                        valy=valy-9.5
                         valpred,valloss=sess.run([prediction, loss],feed_dict={x: valx, y: valy, learningi: thislearning})
                         if self.accthre < 998:
                             trainresult=sum((trainpred>(self.accthre))==(inputy).astype(np.int64))/len(trainpred)
@@ -109,6 +111,7 @@ class trainmodel():
             new_saver = tf.train.import_meta_graph(self.modeldir+'test-0.meta')
             new_saver.restore(sess, tf.train.latest_checkpoint(self.modeldir))
             valx,valy=self.traindata.Getvaldata()
+            valy=valy-9.5
             valpred,valloss=sess.run([prediction, loss],feed_dict={x: valx, y: valy})
             
             if self.accthre < 998:
