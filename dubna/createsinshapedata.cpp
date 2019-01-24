@@ -219,9 +219,10 @@ Double_t correction(TString rootdatadir,TString plotdir,TString txtdir,Int_t met
   p1.legendname.push_back("After Correction");
   p1.SetY1range(-3,3);
   p1.textcontent="ECal: interpolation correction method "+TString::Format("%d",methodid);
-  p1.plotname=plotdir+"scan"+TString::Format("%d",scani)+"m"+TString::Format("%d",methodid)+"corrcompare";
-  DrawNGraph(veccompareplotx,veccompareploty,2,vecNbofpoints,p1);
-  
+  if(plotdir!=""){
+	 p1.plotname=plotdir+"scan"+TString::Format("%d",scani)+"m"+TString::Format("%d",methodid)+"corrcompare";
+	 DrawNGraph(veccompareplotx,veccompareploty,2,vecNbofpoints,p1);
+  }
   // residual histogram
   plotpara p2;
   p2.xname="Measured-Truth Position [cm]";
@@ -231,7 +232,8 @@ Double_t correction(TString rootdatadir,TString plotdir,TString txtdir,Int_t met
   p2.titleoffsety[0]=2;
   p2.textcontent="ECal: position residual before correction";
   p2.SetStatsrange(0.62,0.56,0.97,0.94);
-  p2.plotname=plotdir+"scan"+TString::Format("%d",scani)+"m"+TString::Format("%d",methodid)+"resihistbefore";
+  if(plotdir!="")
+	 p2.plotname=plotdir+"scan"+TString::Format("%d",scani)+"m"+TString::Format("%d",methodid)+"resihistbefore";
   TF1 *f1 = new TF1("f1","gaus");
   Double_t mean = uncorrectedAllresidualhist->GetMean();
   Double_t sigma = uncorrectedAllresidualhist->GetRMS();
@@ -242,7 +244,8 @@ Double_t correction(TString rootdatadir,TString plotdir,TString txtdir,Int_t met
   // 2nd fit      
   f1->SetRange(gausspara[1]-Nsigma*gausspara[2], gausspara[1]+Nsigma*gausspara[2]);  
   uncorrectedAllresidualhist->Fit("f1","QR");                                     
-  f1->GetParameters(&gausspara[0]);                                  
+  f1->GetParameters(&gausspara[0]);
+  if(plotdir!="")
   Draw1HistogramWithTF1(uncorrectedAllresidualhist,f1,p2);
 
   p2.textcontent="ECal: position residual after correction";
@@ -256,7 +259,8 @@ Double_t correction(TString rootdatadir,TString plotdir,TString txtdir,Int_t met
   // 2nd fit      
   f2->SetRange(gausspara[1]-Nsigma*gausspara[2], gausspara[1]+Nsigma*gausspara[2]);  
   correctedAllresidualhist->Fit("f2","QR");                                     
-  f2->GetParameters(&gausspara[0]);               
+  f2->GetParameters(&gausspara[0]);
+  if(plotdir!="")
   Draw1HistogramWithTF1(correctedAllresidualhist,f2,p2);
   return gausspara[2];
 }
@@ -429,183 +433,6 @@ Double_t analysisNN(TString NNmodeldir,TString plotdir,Int_t scani){
 }
 
 
-void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Double_t posreso[2]){
-  Double_t rangefit[2]={4.2,10.8};
-  Double_t preposreso[2];
-  TF1 *f1 = new TF1("f1","gaus");
-  Double_t fitpara[5],shift;
-  shift=Getfitpara(fitpara,txtdir+"fitpara"+TString::Format("%d",scani)+".txt");
-  Double_t truthpos[Nboffile];
-  Getcalibratedpos(truthpos);
-  for(Int_t filei=0;filei<Nboffile;filei++) truthpos[filei]=truthpos[filei]+shift;//fitpara[3];
-  Double_t uncorrectedmeasuredposarray[Nboffile],correctedmeasuredposarray[Nboffile],uncorrectedresidualarray[Nboffile],correctedresidualarray[Nboffile];
-  TH1D* uncorrectedmeasuredposhist[Nboffile],*correctedmeasuredposhist[Nboffile],*uncorrectedresidualhist[Nboffile],*correctedresidualhist[Nboffile];
-
-  for(Int_t filei=0;filei<Nboffile;filei++){
-  	 uncorrectedmeasuredposhist[filei]=new TH1D("uncorrectedmeasuredposhist"+TString::Format("%d",filei),"",100,-100,100);
-	 correctedmeasuredposhist[filei]=new TH1D("correctedmeasuredposhist"+TString::Format("%d",filei),"",100,-100,100);
-	 uncorrectedresidualhist[filei]=new TH1D("uncorrectedresidualhist"+TString::Format("%d",filei),"",100,-100,100);
-	 correctedresidualhist[filei]=new TH1D("correctedresidualhist"+TString::Format("%d",filei),"",100,-100,100);
-	 // [filei]=new TH1D(""+TString::Format("%d",filei),"",100,-100,100);
-  }
-  
-  TFile* inrootfile=new TFile(rootdatadir+"rootdata/lwaveform"+TString::Format("%d",scani)+"energy.root");
-  TTree* intree[2];
-  Int_t fileid;
-  Float_t intch[9];
-  for(Int_t rowi=0;rowi<2;rowi++){
-	 intree[rowi]=(TTree*)inrootfile->Get("wavetreerow"+TString::Format("%d",rowi+1));
-	 intree[rowi]->SetBranchAddress("intch",intch);
-	 intree[rowi]->SetBranchAddress("fileid",&fileid);
-
-	 Int_t nEntries=intree[rowi]->GetEntries();
-	 vector<Double_t> residual,measuredpos;
-	 vector<Int_t> filearray;
-	 for(Int_t itr=0;itr<nEntries;itr++){
-		intree[rowi]->GetEntry(itr);
-		measuredpos.push_back(((intch[0]+intch[1]+intch[2])*pos[rowi]+(intch[3]+intch[4]+intch[5])*pos[rowi+1]+(intch[6]+intch[7]+intch[8])*pos[rowi+2])/(intch[0]+intch[1]+intch[2]+intch[3]+intch[4]+intch[5]+intch[6]+intch[7]+intch[8]));
-		residual.push_back(measuredpos[itr]-truthpos[fileid-filerange[0][0]]);
-		filearray.push_back(fileid-filerange[0][0]);
-		uncorrectedmeasuredposhist[fileid-filerange[0][0]]->Fill(measuredpos[itr]);
-		uncorrectedresidualhist[fileid-filerange[0][0]]->Fill(measuredpos[itr]-truthpos[fileid-filerange[0][0]]);
-	 }
-	 Int_t iteration=0,Nbofiteration=3; 
-	 while (iteration<Nbofiteration){
-		TH1D* residualhist=new TH1D("residual","",70,-3.5,4.5);
-		TH2D* correctionhist=new TH2D("correction"+TString::Format("%d",iteration),"",23,-3,20,70,-10,10);
-		for(Int_t i=0;i<nEntries;i++){
-		  residualhist->Fill(residual[i]);  
-		  correctionhist->Fill(measuredpos[i],residual[i]);
-		}
-		gStyle->SetOptFit(111);
-		gStyle->SetOptStat(1111);	
-		Double_t mean = residualhist->GetMean();
-		Double_t sigma = residualhist->GetRMS();
-		Double_t para[3];
-		f1->SetRange(mean-Nsigma*sigma, mean+Nsigma*sigma); 
-		residualhist->Fit("f1","QR");
-		f1->GetParameters(&para[0]);  
-		// 2nd fit      
-		f1->SetRange(para[1]-Nsigma*para[2], para[1]+Nsigma*para[2]);  
-		residualhist->Fit("f1","QR");                                     
-		f1->GetParameters(&para[0]);                                  
-		f1->SetRange(para[1]-Nsigma*para[2], para[1]+Nsigma*para[2]);
-		f1->GetParameters(&para[0]);  
-
-		
-		TF1 *ftemp = new TF1("ftemp","[0]*exp(-0.5*((x-[1])/[2])**2)",para[1]-Nsigma*para[2],para[1]+Nsigma*para[2]);
-		ftemp->SetParameters(para[0],para[1],para[2]);
-		
-		correctionhist->ProfileX();
-		TH1D *htemp=(TProfile *)gDirectory->Get("correction"+TString::Format("%d",iteration)+"_pfx");
-		Double_t par[8];
-	 
-		TF1 *f2 = new TF1("f2","[0]+[1]/sqrt(x)+[2]/x+[3]*x+[4]*pow(x,2)+[5]*pow(x,3)",rangefit[0],rangefit[1]);
-		
-		htemp->Fit("f2","q","QRsame",rangefit[0],rangefit[1]);
-		htemp->Fit("f2","q","QRsame",rangefit[0],rangefit[1]);  
-		f2->GetParameters(&par[0]);
-
-
-		if(iteration==Nbofiteration-1){
-		  for(Int_t i=0;i<nEntries;i++){
-			 double cor=0;
-			 // cor=par[0]+par[1]/sqrt(TOT[i])+par[2]/TOT[i]+par[3]*TOT[i]+par[4]*pow(TOT[i],2)+par[5]*pow(TOT[i],3);
-			 cor=htemp->GetBinContent(htemp->FindBin(measuredpos[i]));
-			 residual.at(i)=residual.at(i)-cor;
-			 correctedmeasuredposhist[filearray[i]]->Fill(residual[i]+truthpos[filearray[i]]);
-			 correctedresidualhist[filearray[i]]->Fill(residual[i]);
-		  }
-		}
-		else{
-		  for(Int_t i=0;i<nEntries;i++){
-			 double cor=0;
-			 cor=htemp->GetBinContent(htemp->FindBin(measuredpos[i]));
-			 // residual[i]=residual[i]-cor;
-			 residual.at(i)=residual.at(i)-cor;
-		  }
-		}	
-		
-		plotpara residualp1,correctionp1;
-		// correctionp1.format=".png";
-		correctionp1.xname="Measured Position [cm]";
-		correctionp1.yname[0]="Measured-Truth Position [cm]";
-		correctionp1.titleoffsety[0]=1.45;
-		correctionp1.rightmargin=0.11;
-		correctionp1.statsxrange[0]=0.62;	correctionp1.statsxrange[1]=0.9;
-		correctionp1.statsyrange[0]=0.66;	correctionp1.statsyrange[1]=0.93;
-		if(plotdir!="")
-		correctionp1.plotname=plotdir+"slewing/scan"+TString::Format("%d%d",scani,rowi)+"corritr"+TString::Format("%d",iteration);
-		Draw1TH2DWithPfTF(correctionhist,htemp,f2,correctionp1);
-		
-		// residualp1.format=".png";
-		residualp1.SetStatsrange(0.1287625,0.5619546,0.4899666,0.9406632);
-		residualp1.titleoffsety[0]=1.85;
-		residualp1.leftmargin=0.17;
-		residualp1.rightmargin=0.2-residualp1.leftmargin;
-		residualp1.xname="Measured-Truth Position [cm]";
-		residualp1.yname[0]="Entries";
-		residualp1.SetStatsrange(0.62,0.56,0.97,0.94);
-		if(iteration==0) residualp1.textcontent ="MRPC Experiment: Before slew";
-		else residualp1.textcontent ="MRPC Experiment: After slew";
-		if(plotdir!="")
-		residualp1.plotname=plotdir+"slewing/scan"+TString::Format("%d%d",scani,rowi)+"timeitr"+TString::Format("%d",iteration);
-		Draw1HistogramWithTF1(residualhist,ftemp,residualp1);
-		
-		iteration++;
-		if(iteration==Nbofiteration){
-		  posreso[rowi]=para[2];////residualhist->GetRMS();
-		  // posresoerror[scani]=posreso[scani]/sqrt(2*(residualhist->GetEntries()-1));
-		}
-		else if(iteration==1)
-		  preposreso[rowi]=residualhist->GetRMS();
-	 }
-  }
-  for(Int_t filei=0;filei<Nboffile;filei++){
-	 uncorrectedmeasuredposarray[filei]=uncorrectedmeasuredposhist[filei]->GetMean();
-	 uncorrectedresidualarray[filei]=uncorrectedresidualhist[filei]->GetMean();
-	 // cout<<uncorrectedresidualarray[filei]<<endl;
-	 correctedmeasuredposarray[filei]=correctedmeasuredposhist[filei]->GetMean();
-	 correctedresidualarray[filei]=correctedresidualhist[filei]->GetMean();
-  }
-
-  vector<Double_t*> veccompareplotx,veccompareploty;
-  vector<Int_t> vecNbofpoints;
-  
-  veccompareplotx.push_back(uncorrectedmeasuredposarray);
-  veccompareploty.push_back(uncorrectedresidualarray);
-  veccompareplotx.push_back(uncorrectedmeasuredposarray);
-  veccompareploty.push_back(correctedresidualarray);
-  
-  vecNbofpoints.push_back(Nboffile);
-  vecNbofpoints.push_back(Nboffile);
- 
-  plotpara p1;
-  p1.xname="Measured Position [cm]";
-  p1.yname[0]="Measured-Truth Position [cm]";
-  p1.legendname.push_back("Before Correction");
-  p1.legendname.push_back("After Correction");
-  p1.SetY1range(-3,3);
-  p1.withline="true";
-  p1.textcontent="ECal: interpolation correction method";
-  p1.plotname=plotdir+"slewing/scan"+TString::Format("%d",scani)+"corrcompare";
-  DrawNGraph(veccompareplotx,veccompareploty,2,vecNbofpoints,p1);
-
-  p1.textcontent="ECal: interpolation";
-  if(plotdir!="")
-  p1.plotname=plotdir+"slewing/scan"+TString::Format("%d",scani)+"sinshape";
-  Draw1Graph(uncorrectedmeasuredposarray,uncorrectedresidualarray,Nboffile,p1);
-  
-  // if(savetxt&&Nbofscan==6){
-  // 	 ofstream outstd(txtdir+"resoforscansslewing.txt");
-  // 	 outstd<<"scanid energy reso resoerror prereso\n";
-  // 	 for(Int_t scani=0;scani<Nbofscan;scani++)
-  // 		outstd<<scani<<" "<<posreso[scani]<<" "<<posresoerror[scani]<<" "<<preposreso[scani]<<"\n";
-  // }
-}
-
-
-
 Double_t slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani){
   Double_t rangefit[2]={4.2,10.8};
   Double_t preposreso,posreso;
@@ -630,8 +457,11 @@ Double_t slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani)
   TTree* intree[2];
   Int_t fileid;
   Float_t intch[9];
-  vector<Double_t> residual,measuredpos;
-  vector<Int_t> filearray;
+	 vector<Double_t> residual,measuredpos;
+	 vector<Int_t> filearray;
+  	 residual.clear();
+	 measuredpos.clear();
+	 filearray.clear();
   for(Int_t rowi=0;rowi<2;rowi++){
 	 intree[rowi]=(TTree*)inrootfile->Get("wavetreerow"+TString::Format("%d",rowi+1));
 	 intree[rowi]->SetBranchAddress("intch",intch);
@@ -642,17 +472,22 @@ Double_t slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani)
 	 for(Int_t itr=0;itr<nEntries;itr++){
 		intree[rowi]->GetEntry(itr);
 		measuredpos.push_back(((intch[0]+intch[1]+intch[2])*pos[rowi]+(intch[3]+intch[4]+intch[5])*pos[rowi+1]+(intch[6]+intch[7]+intch[8])*pos[rowi+2])/(intch[0]+intch[1]+intch[2]+intch[3]+intch[4]+intch[5]+intch[6]+intch[7]+intch[8]));
-		residual.push_back(measuredpos[itr]-truthpos[fileid-filerange[0][0]]);
+		residual.push_back(measuredpos[measuredpos.size()-1]-truthpos[fileid-filerange[0][0]]);
 		filearray.push_back(fileid-filerange[0][0]);
-		uncorrectedmeasuredposhist[fileid-filerange[0][0]]->Fill(measuredpos[itr]);
-		uncorrectedresidualhist[fileid-filerange[0][0]]->Fill(measuredpos[itr]-truthpos[fileid-filerange[0][0]]);
+		uncorrectedmeasuredposhist[fileid-filerange[0][0]]->Fill(measuredpos[measuredpos.size()-1]);
+		uncorrectedresidualhist[fileid-filerange[0][0]]->Fill(measuredpos[measuredpos.size()-1]-truthpos[fileid-filerange[0][0]]);
 	 }
   }
-  Int_t nEntries=intree[0]->GetEntries()+intree[1]->GetEntries();
+
+  TH1D* residualofrow[2];
+  residualofrow[0]=new TH1D("r1","",70,-3.5,4.5);
+  residualofrow[1]=new TH1D("r2","",70,-3.5,4.5);
+  Int_t nEntries=filearray.size();
+  
 	 Int_t iteration=0,Nbofiteration=3; 
 	 while (iteration<Nbofiteration){
 		TH1D* residualhist=new TH1D("residual","",70,-3.5,4.5);
-		TH2D* correctionhist=new TH2D("correction"+TString::Format("%d",iteration),"",23,-3,20,70,-10,10);
+		TH2D* correctionhist=new TH2D("correction"+TString::Format("%d",iteration),"",23,1,15,70,-10,10);
 		for(Int_t i=0;i<nEntries;i++){
 		  residualhist->Fill(residual[i]);  
 		  correctionhist->Fill(measuredpos[i],residual[i]);
@@ -693,6 +528,7 @@ Double_t slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani)
 			 // cor=par[0]+par[1]/sqrt(TOT[i])+par[2]/TOT[i]+par[3]*TOT[i]+par[4]*pow(TOT[i],2)+par[5]*pow(TOT[i],3);
 			 cor=htemp->GetBinContent(htemp->FindBin(measuredpos[i]));
 			 residual.at(i)=residual.at(i)-cor;
+			 measuredpos.at(i)=residual.at(i)+truthpos[filearray[i]];
 			 correctedmeasuredposhist[filearray[i]]->Fill(residual[i]+truthpos[filearray[i]]);
 			 correctedresidualhist[filearray[i]]->Fill(residual[i]);
 		  }
@@ -703,6 +539,7 @@ Double_t slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani)
 			 cor=htemp->GetBinContent(htemp->FindBin(measuredpos[i]));
 			 // residual[i]=residual[i]-cor;
 			 residual.at(i)=residual.at(i)-cor;
+			 measuredpos.at(i)=residual.at(i)+truthpos[filearray[i]];
 		  }
 		}	
 		
@@ -710,8 +547,10 @@ Double_t slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani)
 		// correctionp1.format=".png";
 		correctionp1.xname="Measured Position [cm]";
 		correctionp1.yname[0]="Measured-Truth Position [cm]";
-		correctionp1.titleoffsety[0]=1.45;
-		correctionp1.rightmargin=0.11;
+		correctionp1.titleoffsety[0]=0.95;
+		correctionp1.rightmargin=0.15;
+		correctionp1.leftmargin=0.095;
+		
 		correctionp1.statsxrange[0]=0.62;	correctionp1.statsxrange[1]=0.9;
 		correctionp1.statsyrange[0]=0.66;	correctionp1.statsyrange[1]=0.93;
 		if(plotdir!="")
@@ -734,13 +573,16 @@ Double_t slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani)
 		
 		iteration++;
 		if(iteration==Nbofiteration){
-		  posreso=para[2];////residualhist->GetRMS();
+		  posreso=para[2];
+		  // posreso[rowi]=para[2];////residualhist->GetRMS();
 		  // posresoerror[scani]=posreso[scani]/sqrt(2*(residualhist->GetEntries()-1));
 		}
 		else if(iteration==1)
 		  preposreso=residualhist->GetRMS();
 	 }
   
+
+
   for(Int_t filei=0;filei<Nboffile;filei++){
 	 uncorrectedmeasuredposarray[filei]=uncorrectedmeasuredposhist[filei]->GetMean();
 	 uncorrectedresidualarray[filei]=uncorrectedresidualhist[filei]->GetMean();
@@ -775,14 +617,14 @@ Double_t slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani)
   if(plotdir!="")
   p1.plotname=plotdir+"slewing/scan"+TString::Format("%d",scani)+"sinshape";
   Draw1Graph(uncorrectedmeasuredposarray,uncorrectedresidualarray,Nboffile,p1);
-  
+
+  return posreso;
   // if(savetxt&&Nbofscan==6){
   // 	 ofstream outstd(txtdir+"resoforscansslewing.txt");
   // 	 outstd<<"scanid energy reso resoerror prereso\n";
   // 	 for(Int_t scani=0;scani<Nbofscan;scani++)
   // 		outstd<<scani<<" "<<posreso[scani]<<" "<<posresoerror[scani]<<" "<<preposreso[scani]<<"\n";
   // }
-  return posreso;
 }
 
 
@@ -825,25 +667,34 @@ Double_t amplitudeslewing(TString rootdatadir,TString plotdir,TString txtdir,Int
 
 	 for(Int_t itr=0;itr<nEntries;itr++){
 		intree[rowi]->GetEntry(itr);
+		if(fileid>8) continue;
+		if(fileid<4) continue;
 		Double_t tmpmeasuredpos;
-		  tmpmeasuredpos=((intch[0]+intch[1]+intch[2])*pos[rowi]+(intch[3]+intch[4]+intch[5])*pos[rowi+1]+(intch[6]+intch[7]+intch[8])*pos[rowi+2])/(intch[0]+intch[1]+intch[2]+intch[3]+intch[4]+intch[5]+intch[6]+intch[7]+intch[8]);
+		tmpmeasuredpos=((intch[0]+intch[1]+intch[2])*pos[rowi]+(intch[3]+intch[4]+intch[5])*pos[rowi+1]+(intch[6]+intch[7]+intch[8])*pos[rowi+2])/(intch[0]+intch[1]+intch[2]+intch[3]+intch[4]+intch[5]+intch[6]+intch[7]+intch[8]);
 	
-
 		residual.push_back(tmpmeasuredpos-truthpos[fileid-filerange[0][0]]);
+		// if(rowi==0){
+		// ratio[1].push_back((intch[3]+intch[4]+intch[5])/(intch[6]+intch[7]+intch[8]));
+		// ratio[0].push_back((intch[3]+intch[4]+intch[5])/(intch[6]+intch[7]+intch[8]));
+		// }
+		// else{	
+		  
 		ratio[0].push_back((intch[3]+intch[4]+intch[5])/(intch[0]+intch[1]+intch[2]));
 		ratio[1].push_back((intch[3]+intch[4]+intch[5])/(intch[6]+intch[7]+intch[8]));
+
+		// }
 		filearray.push_back(fileid-filerange[0][0]);
 		uncorrectedmeasuredposhist[fileid-filerange[0][0]]->Fill(tmpmeasuredpos);
 		uncorrectedresidualhist[fileid-filerange[0][0]]->Fill(tmpmeasuredpos-truthpos[fileid-filerange[0][0]]);
 	 }
   }
-  Int_t nEntries=intree[0]->GetEntries()+intree[1]->GetEntries();
+  Int_t nEntries=filearray.size();
 	 Int_t iteration=0,Nbofiteration=4; 
 	 while (iteration<Nbofiteration){
 		TH1D* residualhist=new TH1D("residual","",70,-3.5,4.5);
 		TH2D* correctionhist[2];
-		correctionhist[0]=new TH2D("correction0"+TString::Format("%d",iteration),"",50,0,10,50,-6,6);
-		correctionhist[1]=new TH2D("correction1"+TString::Format("%d",iteration),"",50,0,10,50,-6,6);
+		correctionhist[0]=new TH2D("correction0"+TString::Format("%d",iteration),"",50,1,80,50,-6,6);
+		correctionhist[1]=new TH2D("correction1"+TString::Format("%d",iteration),"",50,1,80,50,-6,6);
 		for(Int_t i=0;i<nEntries;i++){
 		  residualhist->Fill(residual[i]);  
 		  correctionhist[0]->Fill(ratio[0][i],residual[i]);
@@ -946,6 +797,7 @@ Double_t amplitudeslewing(TString rootdatadir,TString plotdir,TString txtdir,Int
 	 // cout<<uncorrectedresidualarray[filei]<<endl;
 	 correctedmeasuredposarray[filei]=correctedmeasuredposhist[filei]->GetMean();
 	 correctedresidualarray[filei]=correctedresidualhist[filei]->GetMean();
+	 cout<<"filei"<<filei<<" mean "<<correctedresidualhist[filei]->GetMean()<<" std "<<correctedresidualhist[filei]->GetRMS()<<" "<<posreso<<endl;
   }
 
   vector<Double_t*> veccompareplotx,veccompareploty;

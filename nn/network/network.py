@@ -21,10 +21,10 @@ def main():
     testdataname=''
     
 
-    # CNN
-    dataname=[supdir+'cnnwavescan'+str(scan)+'row'+str(row)+'.dat', 'data', 'label', 'label']
-    modeldir=supdir+"CNNmodels"+str(scan)+'row'+str(row)+'/'
-    mynet=mynetwork.mycnnnetwork(dataname,modeldir,scan)
+    # # CNN
+    # dataname=[supdir+'cnnwavescan'+str(scan)+'row'+str(row)+'.dat', 'data', 'label', 'label']
+    # modeldir=supdir+"CNNmodels"+str(scan)+'row'+str(row)+'/'
+    # mynet=mynetwork.mycnnnetwork(dataname,modeldir,scan)
 
 
     # # CNN
@@ -41,10 +41,10 @@ def main():
     # specific parameters
     
 
-    # # DNN
-    # dataname=[supdir+'integralscan'+str(scan)+'.dat', 'data', 'label', 'label']
-    # modeldir=supdir+"DNNmodels"+str(scan)+'/'
-    # mynet=mynetwork.mydnnnetwork(dataname,modeldir,scan)
+    # DNN
+    dataname=[supdir+'integralscan'+str(scan)+'row'+str(row)+'.dat', 'data', 'label', 'label']
+    modeldir=supdir+"DNNmodels"+str(scan)+'row'+str(row)+'/'
+    mynet=mynetwork.mydnnnetwork(dataname,modeldir,scan)
 
     
     #  ----------------------------------------------------------------------#

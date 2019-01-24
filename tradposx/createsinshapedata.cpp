@@ -597,7 +597,7 @@ void NNcompare(TString txtdir,TString plotdir,TString NNafterdir,Int_t scani){
   
 
 void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Double_t posreso[Nbofrow]){
-  Double_t rangefit[2]={3.7,11.6};
+  Double_t rangefit[2]={4,16};
   Double_t preposreso[Nbofrow];
   TF1 *f1 = new TF1("f1","gaus");
   Double_t fitpara[5],shift;
@@ -620,14 +620,21 @@ void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Doub
   TTree* intree[Nbofrow];
   Int_t fileid;
   Float_t intch[9];
+
+  vector<Double_t> residual,measuredpos;
+  vector<Int_t> filearray;
+	 residual.clear();
+	 measuredpos.clear();
+	 filearray.clear();
+	 
+  
   for(Int_t rowi=0;rowi<3;rowi++){
 	 intree[rowi]=(TTree*)inrootfile->Get("wavetreerow"+TString::Format("%d",rowi+1));
 	 intree[rowi]->SetBranchAddress("intch",intch);
 	 intree[rowi]->SetBranchAddress("fileid",&fileid);
 
 	 Int_t nEntries=intree[rowi]->GetEntries();
-	 vector<Double_t> residual,measuredpos;
-	 vector<Int_t> filearray;
+
 	 for(Int_t itr=0;itr<nEntries;itr++){
 		intree[rowi]->GetEntry(itr);
 		if(whichdir=="y")
@@ -635,15 +642,22 @@ void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Doub
 		else
 		  measuredpos.push_back(((intch[0]+intch[3]+intch[6])*pos[rowi]+(intch[1]+intch[4]+intch[7])*pos[rowi+1]+(intch[2]+intch[5]+intch[8])*pos[rowi+2])/(intch[0]+intch[1]+intch[2]+intch[3]+intch[4]+intch[5]+intch[6]+intch[7]+intch[8]));
 
-		residual.push_back(measuredpos[itr]-truthpos[fileid-filerange[0][0]]);
+		residual.push_back(measuredpos[measuredpos.size()-1]-truthpos[fileid-filerange[0][0]]);
 		filearray.push_back(fileid-filerange[0][0]);
-		uncorrectedmeasuredposhist[fileid-filerange[0][0]]->Fill(measuredpos[itr]);
-		uncorrectedresidualhist[fileid-filerange[0][0]]->Fill(measuredpos[itr]-truthpos[fileid-filerange[0][0]]);
+		uncorrectedmeasuredposhist[fileid-filerange[0][0]]->Fill(measuredpos[measuredpos.size()-1]);
+		uncorrectedresidualhist[fileid-filerange[0][0]]->Fill(measuredpos[measuredpos.size()-1]-truthpos[fileid-filerange[0][0]]);
 	 }
+  }
+  TH1D* residualofrow[3];
+  residualofrow[0]=new TH1D("r1","",70,-3.5,4.5);
+  residualofrow[1]=new TH1D("r2","",70,-3.5,4.5);
+  residualofrow[2]=new TH1D("r2","",70,-3.5,4.5);
+  Int_t nEntries=filearray.size();
+  
 	 Int_t iteration=0,Nbofiteration=3; 
 	 while (iteration<Nbofiteration){
 		TH1D* residualhist=new TH1D("residual","",70,-3.5,4.5);
-		TH2D* correctionhist=new TH2D("correction"+TString::Format("%d",iteration),"",50,4,15,70,-10,10);
+		TH2D* correctionhist=new TH2D("correction"+TString::Format("%d",iteration),"",50,0,20,100,-10,10);
 		for(Int_t i=0;i<nEntries;i++){
 		  residualhist->Fill(residual[i]);  
 		  correctionhist->Fill(measuredpos[i],residual[i]);
@@ -671,8 +685,8 @@ void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Doub
 		TH1D *htemp=(TProfile *)gDirectory->Get("correction"+TString::Format("%d",iteration)+"_pfx");
 		Double_t par[8];
 	 
-		TF1 *f2 = new TF1("f2","[0]+[1]/sqrt(x)+[2]/x+[3]*x+[4]*pow(x,2)+[5]*pow(x,3)",rangefit[0],rangefit[1]);
-		
+		TF1 *f2 = new TF1("f2","[0]*x+[1]*sin([2]*x+[3])+[4]",rangefit[0],rangefit[1]);
+		f2->SetParameters(0.127398,0.5,1.61349,5.84614,-1.33014);
 		htemp->Fit("f2","q","QRsame",rangefit[0],rangefit[1]);
 		htemp->Fit("f2","q","QRsame",rangefit[0],rangefit[1]);  
 		f2->GetParameters(&par[0]);
@@ -681,9 +695,10 @@ void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Doub
 		if(iteration==Nbofiteration-1){
 		  for(Int_t i=0;i<nEntries;i++){
 			 double cor=0;
-			 // cor=par[0]+par[1]/sqrt(TOT[i])+par[2]/TOT[i]+par[3]*TOT[i]+par[4]*pow(TOT[i],2)+par[5]*pow(TOT[i],3);
+			 // cor=f2->Eval(htemp->FindBin(measuredpos[i]));
 			 cor=htemp->GetBinContent(htemp->FindBin(measuredpos[i]));
 			 residual.at(i)=residual.at(i)-cor;
+			 measuredpos.at(i)=residual.at(i)+truthpos[filearray[i]];
 			 correctedmeasuredposhist[filearray[i]]->Fill(residual[i]+truthpos[filearray[i]]);
 			 correctedresidualhist[filearray[i]]->Fill(residual[i]);
 		  }
@@ -691,6 +706,7 @@ void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Doub
 		else{
 		  for(Int_t i=0;i<nEntries;i++){
 			 double cor=0;
+			 // cor=f2->Eval(htemp->FindBin(measuredpos[i]));
 			 cor=htemp->GetBinContent(htemp->FindBin(measuredpos[i]));
 			 // residual[i]=residual[i]-cor;
 			 residual.at(i)=residual.at(i)-cor;
@@ -702,12 +718,14 @@ void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Doub
 		// correctionp1.format=".png";
 		correctionp1.xname="Measured Position [cm]";
 		correctionp1.yname[0]="Measured-Truth Position [cm]";
-		correctionp1.titleoffsety[0]=1.45;
-		correctionp1.rightmargin=0.11;
+		correctionp1.titleoffsety[0]=0.95;
+		correctionp1.rightmargin=0.15;
+		correctionp1.leftmargin=0.095;
+		
 		correctionp1.statsxrange[0]=0.62;	correctionp1.statsxrange[1]=0.9;
 		correctionp1.statsyrange[0]=0.66;	correctionp1.statsyrange[1]=0.93;
 		if(plotdir!="")
-		correctionp1.plotname=plotdir+"slewing/scan"+TString::Format("%d%d",scani,rowi)+"corritr"+TString::Format("%d",iteration);
+		correctionp1.plotname=plotdir+"slewing/scan"+TString::Format("%d",scani)+"corritr"+TString::Format("%d",iteration);
 		Draw1TH2DWithPfTF(correctionhist,htemp,f2,correctionp1);
 		
 		// residualp1.format=".png";
@@ -721,18 +739,63 @@ void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Doub
 		if(iteration==0) residualp1.textcontent ="MRPC Experiment: Before slew";
 		else residualp1.textcontent ="MRPC Experiment: After slew";
 		if(plotdir!="")
-		residualp1.plotname=plotdir+"slewing/scan"+TString::Format("%d%d",scani,rowi)+"timeitr"+TString::Format("%d",iteration);
+		residualp1.plotname=plotdir+"slewing/scan"+TString::Format("%d",scani)+"timeitr"+TString::Format("%d",iteration);
 		Draw1HistogramWithTF1(residualhist,ftemp,residualp1);
 		
 		iteration++;
-		if(iteration==Nbofiteration){
-		  posreso[rowi]=para[2];////residualhist->GetRMS();
-		  // posresoerror[scani]=posreso[scani]/sqrt(2*(residualhist->GetEntries()-1));
-		}
-		else if(iteration==1)
-		  preposreso[rowi]=residualhist->GetRMS();
+		// if(iteration==Nbofiteration){
+		//   posreso[rowi]=para[2];////residualhist->GetRMS();
+		//   // posresoerror[scani]=posreso[scani]/sqrt(2*(residualhist->GetEntries()-1));
+		// }
+		// else if(iteration==1)
+		//   preposreso[rowi]=residualhist->GetRMS();
 	 }
-  }
+  
+	 
+	 Double_t mean = residualofrow[0]->GetMean();
+	 Double_t sigma = residualofrow[0]->GetRMS();
+	 Double_t para[3];
+	 f1->SetRange(mean-Nsigma*sigma, mean+Nsigma*sigma); 
+	 residualofrow[0]->Fit("f1","QR");
+	 f1->GetParameters(&para[0]);  
+	 // 2nd fit      
+	 f1->SetRange(para[1]-Nsigma*para[2], para[1]+Nsigma*para[2]);  
+	 residualofrow[0]->Fit("f1","QR");                                     
+	 f1->GetParameters(&para[0]);                                  
+	 f1->SetRange(para[1]-Nsigma*para[2], para[1]+Nsigma*para[2]);
+	 f1->GetParameters(&para[0]);  
+	 	 
+	 posreso[0]=para[2];
+
+	 mean = residualofrow[1]->GetMean();
+	 sigma = residualofrow[1]->GetRMS();
+	 
+	 f1->SetRange(mean-Nsigma*sigma, mean+Nsigma*sigma); 
+	 residualofrow[1]->Fit("f1","QR");
+	 f1->GetParameters(&para[0]);  
+	 // 2nd fit      
+	 f1->SetRange(para[1]-Nsigma*para[2], para[1]+Nsigma*para[2]);  
+	 residualofrow[1]->Fit("f1","QR");                                     
+	 f1->GetParameters(&para[0]);                                  
+	 f1->SetRange(para[1]-Nsigma*para[2], para[1]+Nsigma*para[2]);
+	 f1->GetParameters(&para[0]);  
+	 posreso[1]=para[2];
+
+	 mean = residualofrow[2]->GetMean();
+	 sigma = residualofrow[2]->GetRMS();
+	 
+	 f1->SetRange(mean-Nsigma*sigma, mean+Nsigma*sigma); 
+	 residualofrow[2]->Fit("f1","QR");
+	 f1->GetParameters(&para[0]);  
+	 // 2nd fit      
+	 f1->SetRange(para[1]-Nsigma*para[2], para[1]+Nsigma*para[2]);  
+	 residualofrow[2]->Fit("f1","QR");                                     
+	 f1->GetParameters(&para[0]);                                  
+	 f1->SetRange(para[1]-Nsigma*para[2], para[1]+Nsigma*para[2]);
+	 f1->GetParameters(&para[0]);  
+	 posreso[2]=para[2];
+
+	 
   for(Int_t filei=0;filei<Nboffile;filei++){
 	 uncorrectedmeasuredposarray[filei]=uncorrectedmeasuredposhist[filei]->GetMean();
 	 uncorrectedresidualarray[filei]=uncorrectedresidualhist[filei]->GetMean();
@@ -774,6 +837,19 @@ void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Doub
   // 	 for(Int_t scani=0;scani<Nbofscan;scani++)
   // 		outstd<<scani<<" "<<posreso[scani]<<" "<<posresoerror[scani]<<" "<<preposreso[scani]<<"\n";
   // }
+
+
+  Double_t correctedresi[18];
+  for(Int_t k=15;k<33;k++)
+	 correctedresi[k-15]=correctedresidualhist[k]->GetRMS();
+	 
+  ofstream outstd(txtdir+"resipointwiseslewing"+TString::Format("%d",scani)+".txt");
+  outstd<<"measurepos posreso\n";
+  for(Int_t k=15;k<33;k++)
+	 outstd<<correctedmeasuredposarray[k]<<" "<<correctedresi[k-15]<<"\n";
+  
+
+  
 }
 
 

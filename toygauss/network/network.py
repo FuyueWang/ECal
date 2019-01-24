@@ -12,24 +12,25 @@ import dataclass
 import trainmodel
 import mynetwork
 
-supdir='../../../data/dubnann/tensorflow/'
+supdir='../../../data/toygauss/tensorflow/'
 
 def main():
-    scan=5 #0-5
-    row=1
+    scan=5
+    row=2
     # # specific parameters
     testdataname=''
     
 
-    # CNN
-    dataname=[supdir+'cnnwavescan'+str(scan)+'.dat', 'data', 'label', 'label']
-    modeldir=supdir+"CNNmodels"+str(scan)+'/'
-    mynet=mynetwork.mycnnnetwork1(dataname,modeldir,scan)
+    # # CNN
+    # dataname=[supdir+'cnnwavescan'+str(scan)+'row'+str(row)+'.dat', 'data', 'label', 'label']
+    # modeldir=supdir+"CNNmodels"+str(scan)+'row'+str(row)+'/'
+    # mynet=mynetwork.mycnnnetwork(dataname,modeldir,scan)
+
 
     # # CNN
-    # dataname=[supdir+'cnnwavescan'+str(scan)+'.dat', 'data', 'label', 'label']
-    # modeldir=supdir+"CNNmodels"+str(scan)+'/'
-    # mynet=mynetwork.mycnnnetwork3(dataname,modeldir,scan)
+    # dataname=[supdir+'cnnwavescan'+str(scan)+'row'+str(row)+'.dat', 'data', 'label', 'label']
+    # modeldir=supdir+"CNNmodels"+str(scan)+'row'+str(row)+'/'
+    # mynet=mynetwork.mycnnnetwork2(dataname,modeldir,scan)
 
     
     # # lstm
@@ -40,10 +41,10 @@ def main():
     # specific parameters
     
 
-    # # DNN
-    # dataname=[supdir+'integralscan'+str(scan)+'.dat', 'data', 'label', 'label']
-    # modeldir=supdir+"DNNmodels"+str(scan)+'/'
-    # mynet=mynetwork.mydnnnetwork(dataname,modeldir,scan)
+    # DNN
+    dataname=[supdir+'integra.dat', 'data', 'label', 'label']
+    modeldir=supdir+'DNNmodels/'
+    mynet=mynetwork.mydnnnetwork(dataname,modeldir,scan)
 
     
     #  ----------------------------------------------------------------------#
@@ -52,7 +53,7 @@ def main():
     data = dataclass.dataclass(dataname,[mynet.trainsize,mynet.batchsize,mynet.validatesize],mynet.datadim, testdataname)
     training = trainmodel.trainmodel([mynet.startlearningrate, mynet.Nbofsaveriteractions, mynet.printiteractions, modeldir, mynet.Nboflearn, mynet.classificationthreshold], data, netarchitecture)
     # training.train()
-    training.validate('valpred.csv')
+    training.validate()
     #  ----------------------------------------------------------------------#
 
 if __name__ == '__main__':

@@ -27,7 +27,7 @@ sed -i 's/,/ /g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/valpr
 
 sed -i 's/ /,/g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/dataframe/valpredscan1row1.csv
 sed -i 's/ /,/g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/dataframe/valpredscan1row2.csv
-sed -i 's/ /,/g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/dataframe/valpredscan2row1.csv
+sed -i 's/ /,/g' /home/ubuntu/fuuew/ecal/data/nn/tensorflow/CNNmodelpred2/dataframe/valpredscan2row1.csv
 sed -i 's/ /,/g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/dataframe/valpredscan2row2.csv
 sed -i 's/ /,/g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/dataframe/valpredscan3row1.csv
 sed -i 's/ /,/g' /home/ubuntu/fuyuew/ecal/data/nn/tensorflow/CNNmodelpred2/dataframe/valpredscan3row2.csv
