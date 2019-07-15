@@ -13,8 +13,8 @@ void runcorrectionx();
 void interpolation(){
   // interpolationx();
   // runcorrectionx();
-  // plotresidualvsmeasure(txtdir,plotdir,0);
-  NNcompare(txtdir,NNplotdir,"../../data/nnx/tensorflow/CNNmodelpred/dataframe/",0);
+  plotresidualvsmeasure(txtdir,plotdir,0);
+  // NNcompare(txtdir,NNplotdir,"../../data/nnx/tensorflow/CNNmodelpred/dataframe/",0);
   TString CNNmodelid=""; 
   // measureslewing(CNNmodelid);
   // interfinalenergy(CNNmodelid);
@@ -52,20 +52,21 @@ void readandplotfinalresult(TString CNNmodelid){
   p1.marker[3]=21;
   p1.marker[4]=22;
   p1.legendname.push_back("1D Correction M1");
-  p1.legendname.push_back("1D Correction M1");
-  p1.legendname.push_back("2D Correction");
+  p1.legendname.push_back("1D Correction M2");
+  p1.legendname.push_back("Bin Correction");
   p1.legendname.push_back("CNN");
 
   p1.SetLegendPosition(0.18,0.65,0.55,0.9);
   p1.xname="Tower ID";
-  p1.yname[0]="Y Position Resolution [mm]";
+  p1.yname[0]="X Position Resolution [mm]";
   p1.SetY1range(2.5,7);
-
+  p1.xNdivisions=505;
+  
   p1.SetXrange(whichrow[0]-0.8,whichrow[1]+0.8);
   p1.textcontent="ECal: Tower in Row 1 @Energy=1.6GeV";
   p1.plotname=plotdir+"resomaprow1";
   DrawNGraph(vectowerid,vecreso1,vecreso1.size(),vecNbofpoint,p1);
-  p1.textcontent="ECal: Tower in Row 2 @Energy=1.6GeV";
+  p1.textcontent="ECal: Tower in Row 1 @Energy=1.6GeV";
   p1.plotname=plotdir+"resomaprow2";
   DrawNGraph(vectowerid,vecreso2,vecreso2.size(),vecNbofpoint,p1);
 

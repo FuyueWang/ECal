@@ -152,7 +152,7 @@ void plotresidualvsmeasure(TString txtdir,TString plotdir,Int_t scani){
 
   plotpara p1;
   p1.xname="Measured Position [cm]";
-  p1.yname[0]="Measured-Calibrated Position [cm]";
+  p1.yname[0]="Measured-Truth Position [cm]";
   p1.textcontent="ECal: Interpolation correction, X scan";//+TString::Format("%d",scani);
   p1.plotname=plotdir+"fitsin"+TString::Format("%d",scani)+"withstrightline";
   p1.minortext=TString::Format("%.2f",fitpara[0])+"x+"+TString::Format("%.2f",fitpara[1])+"sin("+TString::Format("%.2f",fitpara[2])+"x+"+TString::Format("%.2f",fitpara[3])+")"+TString::Format("%.2f",fitpara[4]);

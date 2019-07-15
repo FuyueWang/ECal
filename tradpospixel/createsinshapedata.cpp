@@ -627,8 +627,8 @@ void slewing(TString rootdatadir,TString plotdir,TString txtdir,Int_t scani,Doub
 		correctionp1.titleoffsety[0]=0.95;
 		correctionp1.rightmargin=0.15;
 		correctionp1.leftmargin=0.095;
-		if(iteration==0) correctionp1.textcontent ="ECal: Before 2D Correction, Y Direction";
-		else correctionp1.textcontent ="ECal: After 2D Correction, Y Direction";
+		if(iteration==0) correctionp1.textcontent ="ECal: Before Bin Correction, Y Direction";
+		else correctionp1.textcontent ="ECal: After Bin Correction, Y Direction";
 		correctionp1.statsxrange[0]=0.62;	correctionp1.statsxrange[1]=0.9;
 		correctionp1.statsyrange[0]=0.66;	correctionp1.statsyrange[1]=0.93;
 		

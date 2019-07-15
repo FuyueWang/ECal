@@ -45,16 +45,16 @@ void readandplotfinalresult(TString CNNmodelid){
   p1.marker[3]=21;
   p1.marker[4]=22;
   p1.legendname.push_back("1D Correction M1");
-  p1.legendname.push_back("1D Correction M1");
-  p1.legendname.push_back("2D Correction");
+  p1.legendname.push_back("1D Correction M2");
+  p1.legendname.push_back("Bin Correction");
   p1.legendname.push_back("CNN");
 
   p1.SetLegendPosition(0.18,0.65,0.55,0.9);
-  p1.xname="Tower ID";
+  p1.xname="Energy [GeV]";
   p1.yname[0]="Y Position Resolution [mm]";
   p1.SetY1range(2,9);
   p1.SetXrange(0.81,2.19);
-  p1.textcontent="ECal: Tower in Row 1 @Energy=1.6GeV";
+  p1.textcontent="ECal: Energy Scan";
   p1.plotname=plotdir+"newresomaprow1";
   DrawNGraph(vectowerid,vecreso,vecreso.size(),vecNbofpoint,p1);
 

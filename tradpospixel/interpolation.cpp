@@ -11,17 +11,18 @@ TString thisdir="tradpospixel/";
 TString rootdir="../../data/"+thisdir,txtdir="../../txt/"+thisdir,plotdir="../../plot/"+thisdir,NNmodeldir="../../data/nn/tensorflow/",NNplotdir="../../plot/nn/";
 Double_t beamuncertainty=3;//mm
 void interpolation(){
-  interpolationy();
+  // interpolationy();
   // plotslewing();
   // plotcompare();
   // NNcompare(txtdir,NNplotdir,"../../data/nn/tensorflow/CNNmodelpred2/dataframe/",1);
   // amplitudeslewingforsinglepoint(rootdir,plotdir,txtdir,1,13);
   TString CNNmodelid="2"; //default "2"
   // measureslewing(CNNmodelid);
-  interfinalenergy(CNNmodelid);
-  // readandplotfinalresult(CNNmodelid);
+  // interfinalenergy(CNNmodelid);
+  
+  readandplotfinalresult(CNNmodelid);
 
-
+  //plot the 2D map;
   // Double_t tmpreso[2];
   // slewing(rootdir,plotdir,txtdir,1,tmpreso);
 }
@@ -56,8 +57,8 @@ void readandplotfinalresult(TString CNNmodelid){
   p1.marker[3]=21;
   p1.marker[4]=22;
   p1.legendname.push_back("1D Correction M1");
-  p1.legendname.push_back("1D Correction M1");
-  p1.legendname.push_back("2D Correction");
+  p1.legendname.push_back("1D Correction M2");
+  p1.legendname.push_back("Bin Correction");
   p1.legendname.push_back("CNN");
 
   p1.SetLegendPosition(0.18,0.65,0.55,0.9);
